@@ -1,0 +1,12 @@
+FROM registry.access.redhat.com/rhel7:latest
+
+LABEL RUN='docker run -d -p 11300:11300 $IMAGE'
+
+RUN yum -y update && \
+    rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
+    yum -y install beanstalkd && \
+    yum clean all
+
+EXPOSE 11300
+
+CMD ["beanstalkd", "-p", "11300"]
