@@ -18,3 +18,4 @@ IMAGE_NAME=che-starter:rhel7 atomic scan --scanner=container-capabilities-scanne
 atomic mount -o rw che-starter:rhel7 /mnt
 # now run the scanner
 atomic scan --scanner=pipeline-scanner --verbose --rootfs=/mnt che-starter:rhel7
+umount /mnt
