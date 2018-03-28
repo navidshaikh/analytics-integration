@@ -1,12 +1,14 @@
 from scanning.vendors import beanstalkc
 from scanning.lib import settings
 import sys
+import os
+import json
 
 conn = beanstalkc.Connection(
     host=settings.BEANSTALKD_HOST,
-    host=settings.BEANSTALKD_PORT)
+    port=settings.BEANSTALKD_PORT)
 
-conn.use("master_tube")
+conn.use("start_scan")
 
 if len(sys.argv) < 2:
     print "Please provide image under test as argument to script."
@@ -17,7 +19,7 @@ image_under_test = sys.argv[1].strip()
 if len(sys.argv) > 2:
     logs_dir = sys.argv[2].strip()
 
-image_under_test = s
+image_under_test = sys.argv[1]
 job_data = {
     "image_under_test": image_under_test,
     "action": "start_scan",
