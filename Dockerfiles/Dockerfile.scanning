@@ -1,0 +1,9 @@
+FROM registry.access.redhat.com/rhel7:latest
+
+# RUN yum-config-manager -q -y --enable rhel-7-server-extras-rpms
+# RUN yum -y update && yum clean all
+
+RUN mkdir -p /opt/scanning
+ADD scanning workers /opt/scanning
+ENV PYTHONPATH=$PYTHONPATH:/opt/scanning
+WORKDIR /opt/scanning
