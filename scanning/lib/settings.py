@@ -21,13 +21,13 @@ SCANNERS_OUTPUT = {
     ]
 }
 SCANNERS_RESULTFILE = {
-    "pipeline-scanner": [
+    "pipeline-scanner:rhel7": [
         "pipeline_scanner_results.json"],
-    "misc-package-updates": [
+    "misc-package-updates:rhel7": [
         "misc_package_updates_scanner_results.json"],
-    "scanner-rpm-verify": [
+    "scanner-rpm-verify:rhel7": [
         "RPMVerify_scanner_results.json"],
-    "container-capabilities-scanner": [
+    "container-capabilities-scanner:rhel7": [
         "container-capabilities-results.json"
     ]
 

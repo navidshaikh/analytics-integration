@@ -45,7 +45,7 @@ class ScannerRunner(object):
         self.scanners = {
             "pipeline-scanner:rhel7": PipelineScanner,
             "scanner-rpm-verify:rhel7": ScannerRPMVerify,
-            "misc-package-updates": MiscPackageUpdates,
+            "misc-package-updates:rhel7": MiscPackageUpdates,
             "container-capabilities-scanner:rhel7": ContainerCapabilities,
             # "scanner-analytics-integration:rhel7": AnalyticsIntegration,
         }
