@@ -12,8 +12,8 @@ import os
 import subprocess
 
 from Atomic import Atomic
-from container_pipeline.lib.log import load_logger
-from container_pipeline.lib.settings import SCANNERS_OUTPUT
+from scanning.lib.log import load_logger
+from scanning.lib.settings import SCANNERS_OUTPUT
 
 
 class Scanner(object):
