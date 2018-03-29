@@ -8,7 +8,7 @@ conn = beanstalkc.Connection(
     host=settings.BEANSTALKD_HOST,
     port=settings.BEANSTALKD_PORT)
 
-conn.use("start_scan")
+conn.use("master_tube")
 
 if len(sys.argv) < 2:
     print "Please provide image under test as argument to script."
