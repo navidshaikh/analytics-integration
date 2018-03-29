@@ -26,7 +26,8 @@ class NotifyUser(object):
 
     def __init__(self, job_info):
 
-        self.send_mail_command = "/root/analytics-integration/mail_service/send_mail.sh"
+        self.send_mail_command = \
+            "/root/analytics-integration/mail_service/send_mail.sh"
         self.job_info = job_info
 
         self.image_under_test = job_info.get("image_under_test")
@@ -128,7 +129,7 @@ class NotifyUser(object):
         return text
 
     def get_attachments(self):
-	return " ".join(["-a {}".format(a) for a in self.scanners_status["logs_file_path"].values()])
+        return " ".join(["-a {}".format(a) for a in self.scanners_status["logs_file_path"].values()])
 
     def notify_user(self):
         """
@@ -160,12 +161,7 @@ while True:
     job_id = job.jid
     job_info = json.loads(job.body)
     logger.info("Received Job: {}".format(str(job_info)))
-    notify_user = NotifyUser(job_info)
-    notify_user.notify_user()
-"""
-
-
-   try:
+    try:
         notify_user = NotifyUser(job_info)
         notify_user.notify_user()
     except Exception as e:
@@ -174,4 +170,3 @@ while True:
             .format(str(job_info), e))
     finally:
         job.delete()
-"""
