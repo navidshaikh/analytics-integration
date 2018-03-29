@@ -1,7 +1,6 @@
 from scanning.vendors import beanstalkc
 from scanning.lib import settings
 import sys
-import os
 import json
 
 conn = beanstalkc.Connection(
@@ -9,6 +8,9 @@ conn = beanstalkc.Connection(
     port=settings.BEANSTALKD_PORT)
 
 conn.use("master_tube")
+
+
+ANALYTICS_SERVER = "http://f8a-gemini-server-aagshah-greenfield-test.dev.rdu2c.fabric8.io"
 
 if len(sys.argv) < 2:
     print "Please provide image under test as argument to script."
@@ -24,6 +26,7 @@ job_data = {
     "image_under_test": image_under_test,
     "action": "start_scan",
     "logs_dir": logs_dir,
+    "analytics_server": ANALYTICS_SERVER,
 }
 
 conn.put(json.dumps(job_data))

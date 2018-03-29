@@ -71,7 +71,13 @@ class ScannerRunner(object):
         # create object for the respective scanner class
         scanner_obj = self.scanners.get(scanner)()
         # should receive the JSON data loaded
-        status, json_data = scanner_obj.scan(image_under_test)
+        # if its scanner-analytics-integration we need to pass the server URL
+        if scanner_obj.__class__.__name__ == "AnalyticsIntegration":
+            status, json_data = scanner_obj.scan(
+                image_under_test,
+                self.job_info.get("analytics_server", None))
+        else:
+            status, json_data = scanner_obj.scan(image_under_test)
 
         if not status:
             self.logger.warning("Failed to run the scanner {}".format(scanner))

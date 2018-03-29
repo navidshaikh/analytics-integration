@@ -14,7 +14,7 @@ class AnalyticsIntegration(Scanner):
         self.full_scanner_name = "scanner-analytics-integration:rhel7"
         self.scan_types = ["register"]
 
-    def scan(self, image_under_test):
+    def scan(self, image_under_test, analytics_server):
         """Run the scanner."""
         # initializing a blank list that will contain results from all the
         # scan types of this scanner
@@ -26,7 +26,9 @@ class AnalyticsIntegration(Scanner):
             to_process_output=False
         )
 
-        os.environ["IMAGE_NAME"] = self.image_under_test
+        os.environ["IMAGE_NAME"] = image_under_test
+        if analytics_server:
+            os.environ["SERVER"] = analytics_server
 
         for _ in self.scan_types:
             scan_cmd = [
