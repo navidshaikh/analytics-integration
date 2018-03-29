@@ -26,7 +26,7 @@ class NotifyUser(object):
 
     def __init__(self, job_info):
 
-        self.send_mail_command = "/opt/root/mail_service/send_mail.sh"
+        self.send_mail_command = "/root/analytics-integration/mail_service/send_mail.sh"
         self.job_info = job_info
 
         self.image_under_test = job_info.get("image_under_test")
@@ -45,15 +45,14 @@ class NotifyUser(object):
 
         return text.replace("\n", "\\n").replace("\t", "\\t")
 
-    def send_email(self, subject, contents, attachements):
+    def send_email(self, subject, contents, attachments):
         "Sends email to user"
-
         subprocess.call([
             self.send_mail_command,
             subject,
             self.job_info["notify_email"],
-            self._escape_text_(contents)],
-            attachements)
+            self._escape_text_(contents),
+            attachments])
 
     def _read_status(self, filepath):
         "Method to read status JSON files"
@@ -98,7 +97,7 @@ class NotifyUser(object):
     def compose_email_subject(self):
         " Composes email subject "
 
-        return SUBJECT % self.image_under_test
+        return SUBJECT.format(self.image_under_test)
 
     def compose_scanners_summary(self):
         "Composes scanners result summary"
@@ -121,15 +120,15 @@ class NotifyUser(object):
     def compose_email_contents(self):
         "Aggregates contents from different modules and composes one email"
 
-        text = EMAIL_HEADER % self.image_under_test
+        text = EMAIL_HEADER.format(self.image_under_test)
         # new line and separate section with hyphens
         text += "\n" + self._separate_section()
 
         text += "\n" + self.compose_scanners_summary() + "\n"
         return text
 
-    def get_attachements(self):
-        return " ".join(self.scanners_status["logs_file_path"].values())
+    def get_attachments(self):
+	return " ".join(["-a {}".format(a) for a in self.scanners_status["logs_file_path"].values()])
 
     def notify_user(self):
         """
@@ -138,11 +137,11 @@ class NotifyUser(object):
         """
         subject = self.compose_email_subject()
         email_contents = self.compose_email_contents()
-        attachements = self.get_attachements()
+        attachments = self.get_attachments()
         # send email
         logger.info("Sending email to user %s" %
                     self.job_info["notify_email"])
-        self.send_email(subject, email_contents, attachements)
+        self.send_email(subject, email_contents, attachments)
 
     def remove_status_files(self, status_files):
         "Removes the status file"
@@ -161,7 +160,12 @@ while True:
     job_id = job.jid
     job_info = json.loads(job.body)
     logger.info("Received Job: {}".format(str(job_info)))
-    try:
+    notify_user = NotifyUser(job_info)
+    notify_user.notify_user()
+"""
+
+
+   try:
         notify_user = NotifyUser(job_info)
         notify_user.notify_user()
     except Exception as e:
@@ -170,3 +174,4 @@ while True:
             .format(str(job_info), e))
     finally:
         job.delete()
+"""
