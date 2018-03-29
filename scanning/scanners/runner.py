@@ -10,7 +10,7 @@ from container_capabilities import ContainerCapabilities
 from misc_package_updates import MiscPackageUpdates
 from pipeline import PipelineScanner
 from rpm_verify import ScannerRPMVerify
-#from analytics_integration import AnalyticsIntegration
+from analytics_integration import AnalyticsIntegration
 import scanning.lib.settings as constants
 
 
@@ -47,7 +47,7 @@ class ScannerRunner(object):
             "scanner-rpm-verify:rhel7": ScannerRPMVerify,
             "misc-package-updates:rhel7": MiscPackageUpdates,
             "container-capabilities-scanner:rhel7": ContainerCapabilities,
-            # "scanner-analytics-integration:rhel7": AnalyticsIntegration,
+            "scanner-analytics-integration:rhel7": AnalyticsIntegration,
         }
 
     def pull_image_under_test(self, image_under_test):
