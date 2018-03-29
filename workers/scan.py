@@ -78,9 +78,8 @@ class ScanWorker(BaseWorker):
         self.logger.debug("Removing unused/dangling images..")
         try:
             run_cmd(command, shell=True)
-        except Exception as e:
-            self.logger.critical("Failing to remove dangling images.")
-            self.logger.critical("Error: %s", str(e))
+        except Exception:
+            pass
         else:
             self.logger.debug("Cleaned unsued images post scan.")
 
@@ -88,9 +87,8 @@ class ScanWorker(BaseWorker):
         self.logger.debug("Removing unused/dangling volumes..")
         try:
             run_cmd(command, shell=True)
-        except Exception as e:
-            self.logger.critical("Failing to remove dangling volume.")
-            self.logger.critical("Error: %s", str(e))
+        except Exception:
+            pass
         else:
             self.logger.debug("Cleaned unsued volumes post scan.")
 
