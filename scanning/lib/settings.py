@@ -38,7 +38,7 @@ SCANNERS_RESULTFILE = {
 SCANNERS_STATUS_FILE = "scanners_status.json"
 
 LOG_LEVEL = "DEBUG"
-LOG_PATH = "scanning.log"
+LOG_PATH = "/tmp/scanning.log"
 
 LOGGING = dict(
     version=1,

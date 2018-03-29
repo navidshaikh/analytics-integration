@@ -20,6 +20,8 @@ image_under_test = sys.argv[1].strip()
 
 if len(sys.argv) > 2:
     logs_dir = sys.argv[2].strip()
+else:
+    logs_dir = "/tmp/"
 
 image_under_test = sys.argv[1]
 job_data = {
