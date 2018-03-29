@@ -179,8 +179,9 @@ class ScannerRunner(object):
         scanners_data["action"] = "notify"
 
         # after all scanners are ran, remove the image
-        self.logger.info("Removing the image: {}".format(image_under_test))
-        self.conn.remove_image(image=image_under_test, force=True)
+        # TODO: uncomment following operations which are removing images
+        # self.logger.info("Removing the image: {}".format(image_under_test))
+        # self.conn.remove_image(image=image_under_test, force=True)
         # TODO: Check here if at least one scanner ran successfully
         self.logger.info("Finished executing all scanners.")
 
