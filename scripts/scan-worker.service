@@ -3,5 +3,5 @@ Description=scan-worker.service
 
 [Service]
 Environment=PYTHONPATH=/root/analytics-integration
-ExecStart=/root/analytics-integration/container_pipeline/workers/scan.py
+ExecStart=/root/analytics-integration/workers/scan.py
 Restart=on-failure
