@@ -1,4 +1,4 @@
-echo "Stop and rmeove beanstalkd server container.."
+echo "Stop and remove beanstalkd server container.."
 docker stop beanstalkd_server
 docker rm beanstalkd_server
 

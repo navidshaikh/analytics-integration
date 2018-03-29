@@ -109,6 +109,10 @@ class PipelineScanner(object):
                     self.logger.error(
                         'Error during unmounting image\'s rootfs from {}: {}'
                         .format(self.mount_object.mountpoint, e))
+            else:
+                self.logger.info("Unmounted {}".format(
+                    self.mount_object.mountpoint))
+                break
 
     def remove_image(self):
         """
