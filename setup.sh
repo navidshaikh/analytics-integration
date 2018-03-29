@@ -12,3 +12,9 @@ cp scripts/scan-worker.service /etc/systemd/system/scan-worker.service
 systemctl daemon-reload
 systemctl restart scan-worker.service
 systemctl status scan-worker.service
+
+echo "Start scan worker"
+cp scripts/notify-worker.service /etc/systemd/system/notify-worker.service
+systemctl daemon-reload
+systemctl restart notify-worker.service
+systemctl status notify-worker.service

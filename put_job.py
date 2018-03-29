@@ -9,7 +9,7 @@ conn = beanstalkc.Connection(
 
 conn.use("master_tube")
 
-
+EMAIL = "nshaikh@redhat.com"
 ANALYTICS_SERVER = "http://f8a-gemini-server-aagshah-greenfield-test.dev.rdu2c.fabric8.io"
 
 if len(sys.argv) < 2:
@@ -27,6 +27,7 @@ job_data = {
     "action": "start_scan",
     "logs_dir": logs_dir,
     "analytics_server": ANALYTICS_SERVER,
+    "notify_email": EMAIL,
 }
 
 conn.put(json.dumps(job_data))

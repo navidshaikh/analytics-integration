@@ -7,3 +7,6 @@ systemctl stop dispatcher-worker.service
 
 echo "Stop scan worker"
 systemctl stop scan-worker.service
+
+echo "Stop notify worker"
+systemctl stop  notify-worker.service

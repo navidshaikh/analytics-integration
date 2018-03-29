@@ -1,0 +1,7 @@
+[Unit]
+Description=notify-worker.service
+
+[Service]
+Environment=PYTHONPATH=/root/analytics-integration
+ExecStart=/root/analytics-integration/mail_service/notify_worker.py
+Restart=on-failure
