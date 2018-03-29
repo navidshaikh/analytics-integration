@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
-# FIXME: we've duplicated config.py from ../beanstalk_worker into this dir
-# because we don't yet have a global config which can be shared across
-# all components.
 import json
 import logging
 import os
 import subprocess
 
 import beanstalkc
+
+from scanning.lib.log import load_logger
+
+load_logger()
 
 logger = logging.getLogger('mail-service')
 
