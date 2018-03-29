@@ -29,6 +29,9 @@ SCANNERS_RESULTFILE = {
         "RPMVerify_scanner_results.json"],
     "container-capabilities-scanner:rhel7": [
         "container-capabilities-results.json"
+    ],
+    "scanner-analytics-integration:rhel7":[
+        "analytics_integration_results.json"
     ]
 
 }
