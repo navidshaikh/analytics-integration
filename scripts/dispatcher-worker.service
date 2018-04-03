@@ -2,6 +2,6 @@
 Description=dispatcher-worker.service
 
 [Service]
-Environment=PYTHONPATH=/root/analytics-integration
-ExecStart=/root/analytics-integration/workers/dispatcher.py
+Environment=PYTHONPATH=/root/scanning
+ExecStart=/root/scanning/workers/dispatcher.py
 Restart=on-failure
