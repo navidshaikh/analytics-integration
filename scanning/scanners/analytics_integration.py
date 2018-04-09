@@ -2,7 +2,7 @@
 """This class is a wrapper for running analytics scanner and grab results."""
 import os
 
-from base import Scanner
+from container_pipeline.scanners.base import Scanner
 
 
 class AnalyticsIntegration(Scanner):

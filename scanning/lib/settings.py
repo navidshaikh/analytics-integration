@@ -1,40 +1,11 @@
+# import configs from root directory of repository
+from config import *
+
 BEANSTALKD_HOST = "127.0.0.1"
 BEANSTALKD_PORT = 11300
 DOCKER_HOST = "127.0.0.1"
 DOCKER_PORT = "4243"
 
-SCANNERS_OUTPUT = {
-    "pipeline-scanner:rhel7": [
-        "image_scan_results.json"
-    ],
-    "misc-package-updates:rhel7": [
-        "image_scan_results.json"
-    ],
-    "scanner-rpm-verify:rhel7": [
-        "RPMVerify.json"
-    ],
-    "container-capabilities-scanner:rhel7": [
-        "container_capabilities_scanner_results.json"
-    ],
-    "scanner-analytics-integration:rhel7": [
-        "scanner-analytics-integration.json"
-    ]
-}
-SCANNERS_RESULTFILE = {
-    "pipeline-scanner:rhel7": [
-        "pipeline_scanner_results.json"],
-    "misc-package-updates:rhel7": [
-        "misc_package_updates_scanner_results.json"],
-    "scanner-rpm-verify:rhel7": [
-        "RPMVerify_scanner_results.json"],
-    "container-capabilities-scanner:rhel7": [
-        "container-capabilities-results.json"
-    ],
-    "scanner-analytics-integration:rhel7":[
-        "analytics_integration_results.json"
-    ]
-
-}
 SCANNERS_STATUS_FILE = "scanners_status.json"
 
 LOG_LEVEL = "DEBUG"
