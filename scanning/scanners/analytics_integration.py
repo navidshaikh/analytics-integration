@@ -56,7 +56,7 @@ class AnalyticsIntegration(Scanner):
             data["logs"] = {}
             return data
         # there are logs inside logs
-        logs = json_data.get("logs", {}).get("logs", {})
+        logs = json_data.get("logs", {})
         if not logs:
             data["msg"] = "Failed to run the scanner."
         else:
