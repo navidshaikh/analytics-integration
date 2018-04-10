@@ -6,19 +6,23 @@ from scanning.scanners.base import Scanner
 
 
 class AnalyticsIntegration(Scanner):
-    """Checks updates for packages other than RPM."""
+    """
+    Scanner to invoke scanning job at Analytics server.
+    """
 
     def __init__(self):
-        """Name it to Misc Package update check."""
+        """
+        Initialize the invoker class.
+        """
         self.scanner = "analytics-integration"
+        # right now there is only one scan_type which is default
         self.scan_types = ["register"]
         self.result_file = "analytics_scanner_results.json"
 
-    def scan(self, image, analytics_server):
+    def run(self, image, analytics_server):
         """Run the scanner."""
         # initializing a blank list that will contain results from all the
         # scan types of this scanner
-        logs = []
         super(AnalyticsIntegration, self).__init__(
             image=image,
             scanner=self.scanner,
@@ -28,20 +32,14 @@ class AnalyticsIntegration(Scanner):
         os.environ["IMAGE_NAME"] = image
         os.environ["SERVER"] = analytics_server
 
-        for st in self.scan_types:
-            scan_results = self.scan(scan_type=st, process_output=False)
-
-            if not scan_results("status", False):
-                continue
-
-            logs.append(scan_results["logs"])
+        data = self.scan(process_output=False)
 
         # invoke base class's cleanup utility
         self.cleanup()
 
-        return True, self.process_output(logs)
+        return self.process_output(data)
 
-    def process_output(self, logs):
+    def process_output(self, json_data):
         """
         Genaralising output.
 
@@ -55,8 +53,12 @@ class AnalyticsIntegration(Scanner):
         data["scanner"] = self.scanner
         data["image_under_test"] = self.image
         data["msg"] = ""
-        for i in logs:
-            data["msg"] += i.get("Summary", "Failed to run the scanner.")
-        data["logs"] = logs
+        # if status of execution is False
+        if not json_data.get("status", False):
+            data["msg"] = "Failed to run the scanner."
+            data["logs"] = {}
+            return data
 
+        data["msg"] = json_data.get("Summary", "Failed to run the scanner.")
+        data["logs"] = json_data
         return data
