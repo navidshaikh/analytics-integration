@@ -16,6 +16,7 @@ from scanning.scanners.container_capabilities import ContainerCapabilities
 from scanning.scanners.misc_package_updates import MiscPackageUpdates
 from scanning.scanners.pipeline_scanner import PipelineScanner
 from scanning.scanners.rpm_verify import ScannerRPMVerify
+from scanning.scanners.analytics_integration import AnalyticsIntegration
 from scanning.scanners.base import Scanner
 
 
@@ -38,6 +39,7 @@ class ScannerRunner(Scanner):
         # register all scanners
         self.scanners = [
             PipelineScanner,
+            AnalyticsIntegration,
             ScannerRPMVerify,
             MiscPackageUpdates,
             ContainerCapabilities
