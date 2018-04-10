@@ -114,12 +114,17 @@ class ScannerRunner(Scanner):
                 "Exported scanner result file {}".format(result_file))
             return True
 
-    def run_a_scanner(self, scanner_obj, image):
+    def run_a_scanner(self, scanner_obj, image, analytics_server=None):
         """
         Run the given scanner on image.
         """
-        # should receive the JSON data loaded
-        data = scanner_obj.run(image)
+        # if its analytics integration scanner
+        if analytics_server:
+            data = scanner_obj.run(image, analytics_server)
+
+        else:
+            # should receive the JSON data loaded
+            data = scanner_obj.run(image)
 
         self.logger.info("Finished running {} scanner.".format(
             scanner_obj.scanner))
@@ -156,8 +161,25 @@ class ScannerRunner(Scanner):
         for scanner in self.scanners:
             # create object for the respective scanner class
             scanner_obj = scanner()
-            # execute atomic scan and grab the results
-            result = self.run_a_scanner(scanner_obj, image)
+
+            # if analytics_integration scanner, provide extra arg
+            if scanner_obj.__class__.__name__ == "AnalyticsIntegration":
+                server = self.job.get("analytics_server", None)
+                if not server:
+                    self.logger.critical(
+                        "analytics-integration scanner is registered, but"
+                        "analytics_server URL not present in job data."
+                        "Skipping to run the scanner.")
+                    continue
+                else:
+                    # execute analytics scanner and provide server url
+                    result = self.run_a_scanner(
+                        scanner_obj, image, server)
+
+            # or if its any other scanner, run with
+            else:
+                # execute atomic scan and grab the results
+                result = self.run_a_scanner(scanner_obj, image)
 
             # each scanner invoker class defines the output result file
             result_file = os.path.join(
