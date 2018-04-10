@@ -14,7 +14,7 @@ import subprocess
 
 from Atomic import Atomic, mount
 
-from container_pipeline.lib.log import load_logger
+from scanning.lib.log import load_logger
 
 
 class Scanner(object):
