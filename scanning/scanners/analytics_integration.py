@@ -1,6 +1,5 @@
 #!/usr/bin/python
 """This class is a wrapper for running analytics scanner and grab results."""
-import os
 
 from scanning.scanners.base import Scanner
 
@@ -15,8 +14,6 @@ class AnalyticsIntegration(Scanner):
         Initialize the invoker class.
         """
         self.scanner = "analytics-integration"
-        # right now there is only one scan_type which is default
-        self.scan_types = ["register"]
         self.result_file = "analytics_scanner_results.json"
 
     def run(self, image, analytics_server):
@@ -29,10 +26,10 @@ class AnalyticsIntegration(Scanner):
             result_file=self.result_file,
         )
 
-        os.environ["IMAGE_NAME"] = image
-        os.environ["SERVER"] = analytics_server
+        # this scanner needs following two env vars for atomic scan command
+        env_vars = {"IMAGE_NAME": image, "SERVER": analytics_server}
 
-        data = self.scan(process_output=False)
+        data = self.scan(process_output=False, env_vars=env_vars)
 
         # invoke base class's cleanup utility
         self.cleanup()
