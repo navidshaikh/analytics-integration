@@ -10,7 +10,7 @@ class AnalyticsIntegration(Scanner):
 
     def __init__(self):
         """Name it to Misc Package update check."""
-        self.scanner_name = "analytics-integration"
+        self.scanner = "analytics-integration"
         self.scan_types = ["register"]
         self.result_file = "analytics_scanner_results.json"
 
@@ -21,7 +21,7 @@ class AnalyticsIntegration(Scanner):
         logs = []
         super(AnalyticsIntegration, self).__init__(
             image=image,
-            scanner=self.scanner_name,
+            scanner=self.scanner,
             result_file=self.result_file,
         )
 
@@ -52,7 +52,7 @@ class AnalyticsIntegration(Scanner):
         as default, scan type
         """
         data = {}
-        data["scanner"] = self.scanner_name
+        data["scanner"] = self.scanner
         data["image_under_test"] = self.image
         data["msg"] = ""
         for i in logs:
