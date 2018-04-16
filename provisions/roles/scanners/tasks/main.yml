@@ -1,0 +1,71 @@
+--
+- name: Install atomic RPM package
+  yum: name=atomic state=latest
+  become: true
+  tags: scanner
+
+- name: Build pipeline-scanner container
+  docker_image:
+    - path: /opt/scanning/atomic_scanners/pipeline-scanner
+      name: pipeline-scanner
+      tag: rhel7
+      state: present
+      Dockerfile: Dockerfile.rhel7
+      force: yes
+  beocme: true
+  tags: scanner
+
+- name: Build scanner-rpm-verify container
+  docker_image:
+    - path: /opt/scanning/atomic_scanners/scanner-rpm-verify
+      name: scanner-rpm-verify
+      tag: rhel7
+      state: present
+      Dockerfile: Dockerfile.rhel7
+      force: yes
+  beocme: true
+  tags: scanner
+
+- name: Build misc-package-updates scanner container
+  docker_image:
+    - path: /opt/scanning/atomic_scanners/misc-package-updates
+      name: misc-package-updates
+      tag: rhel7
+      state: present
+      Dockerfile: Dockerfile.rhel7
+      force: yes
+  beocme: true
+  tags: scanner
+
+- name: Build container-capabilities-scanner container
+  docker_image:
+    - path: /opt/scanning/atomic_scanners/container-capabilities-scanner
+      name: container-capabilities-scanner
+      tag: rhel7
+      state: present
+      Dockerfile: Dockerfile.rhel7
+      force: yes
+  beocme: true
+  tags: scanner
+
+- name: Build scanner-analytics-integration container
+  docker_image:
+    - path: /opt/scanning/atomic_scanners/scanner-analytics-integration
+      name: scanner-analytics-integration
+      tag: rhel7
+      state: present
+      Dockerfile: Dockerfile.rhel7
+      force: yes
+  beocme: true
+  tags: scanner
+
+- name: Install built atomic scanners
+  shell: atomic install "{{ item }}"
+  with_items:
+    - "pipeline-scanner:rhel7"
+    - "scanner-rpm-verify:rhel7"
+    - "misc-package-updates:rhel7"
+    - "container-capabilities-scanner:rhel7"
+    - "scanner-analytics-integration:rhel7"
+  beocme: true
+  tags: scanner
