@@ -5,14 +5,21 @@
   tags:
     - docker
 
-  name: Build and configure scanners
+- name: Build and configure scanners
   hosts: scanner
   roles:
     - scanners
   tags:
     - scanners
 
-  name: Configure Weekly scan
+- name: Configure services of the scanning module
+  hosts: scanner
+  roles:
+    - services
+  tags:
+    - services
+
+- name: Configure Weekly scan
   hosts: scanner
   roles:
     - weeklyscan

@@ -1,0 +1,46 @@
+--
+- name: Build beanstlkd server RHEL7 based container for scanning module
+  docker_image:
+    - path: /opt/scanning/Dockerfiles
+      name: beanstalkd
+      tag: rhel7
+      state: present
+      Dockerfile: Dockerfile.beanstalkd.rhel7
+      force: yes
+  become: true
+  tags: scanner
+
+- name: Run beanstalkd server container
+  docker_container:
+    - name: beanstalkd_server
+      image: scanning/beanstalkd:rhel7
+      state: started
+      restart: yes
+      restart_policy: unless-stopped
+      detach: yes
+      exposed_ports: 0.0.0.0:11300:11300
+
+- name: Copy systemd servie files for services in scanning
+  copy: src= "/opt/scanning/scripts/{{ item }}" dest=/etc/systemd/system/ mod=u+x
+  with_items:
+      - dispatcher-worker.service
+      - scan-worker.service
+      - notify-worker.service
+  become: true
+  tags: services
+  register: service_files_updated
+
+- name: Reload systemctl daemon
+  shell: systemctl daemon-reload
+  become: true
+  when: service_files_updated
+  tags: services
+
+- name: Enable and start services
+  service: name={{ item }} state=restarted enabled=yes
+  with_items:
+      - dispatcher-worker.service
+      - scan-worker.service
+      - notify-worker.service
+  become: true
+  tags: services
