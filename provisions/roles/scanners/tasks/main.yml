@@ -12,7 +12,7 @@
       state: present
       Dockerfile: Dockerfile.rhel7
       force: yes
-  beocme: true
+  become: true
   tags: scanner
 
 - name: Build scanner-rpm-verify container
@@ -23,7 +23,7 @@
       state: present
       Dockerfile: Dockerfile.rhel7
       force: yes
-  beocme: true
+  become: true
   tags: scanner
 
 - name: Build misc-package-updates scanner container
@@ -34,7 +34,7 @@
       state: present
       Dockerfile: Dockerfile.rhel7
       force: yes
-  beocme: true
+  become: true
   tags: scanner
 
 - name: Build container-capabilities-scanner container
@@ -45,7 +45,7 @@
       state: present
       Dockerfile: Dockerfile.rhel7
       force: yes
-  beocme: true
+  become: true
   tags: scanner
 
 - name: Build scanner-analytics-integration container
@@ -56,7 +56,7 @@
       state: present
       Dockerfile: Dockerfile.rhel7
       force: yes
-  beocme: true
+  become: true
   tags: scanner
 
 - name: Install built atomic scanners
@@ -67,5 +67,5 @@
     - "misc-package-updates:rhel7"
     - "container-capabilities-scanner:rhel7"
     - "scanner-analytics-integration:rhel7"
-  beocme: true
+  become: true
   tags: scanner
