@@ -1,5 +1,8 @@
-- name: Install docker RPM package
-  yum: name=docker state=latest
+- name: Install docker and python-docker-py RPM packages
+  yum: name={{item}} state=latest
+  with_items:
+    - docker
+    - python-docker-py
   become: true
   tags: docker
 
