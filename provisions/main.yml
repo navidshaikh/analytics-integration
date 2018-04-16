@@ -1,0 +1,20 @@
+- name: Install and configure docker
+  hosts: scanner
+  roles:
+    - docker
+  tags:
+    - docker
+
+  name: Build and configure scanners
+  hosts: scanner
+  roles:
+    - scanners
+  tags:
+    - scanners
+
+  name: Configure Weekly scan
+  hosts: scanner
+  roles:
+    - weeklyscan
+  tags:
+    - weeklyscan

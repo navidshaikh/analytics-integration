@@ -1,0 +1,3 @@
+[all:vars]
+scanner=localhost
+registry=registry.devshift.net
