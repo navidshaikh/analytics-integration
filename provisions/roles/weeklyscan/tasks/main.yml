@@ -1,0 +1,14 @@
+---
+- name: Copy cron script for weekly scan
+  template: src=weeklyscan.sh.j2 dest=/root/weeklyscan.sh mode=0755
+  become: true
+  tags: weeklyscan
+
+- name: Configure cron job for weekly scan to run weekly
+  cron:
+    name: "Weekly (atomic) scanning cron job"
+    job: "/root/weeklyscan.sh"
+    special_time: weekly
+
+  become: true
+  tags: weeklyscan
