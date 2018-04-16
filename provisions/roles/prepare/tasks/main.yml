@@ -1,0 +1,8 @@
+---
+- name: Get the source code of scanning module
+  synchronize:
+      src: ../../../../
+      dest: /opt/scanning
+      mode: push
+  become: true
+  tags: prepare

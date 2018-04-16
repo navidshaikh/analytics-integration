@@ -1,3 +1,11 @@
+---
+- name: Prepare the node with prequisites
+  hosts: scanner
+  roles:
+    - prepare
+  tags:
+    - prepare
+
 - name: Install and configure docker
   hosts: scanner
   roles:
