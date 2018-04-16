@@ -1,0 +1,41 @@
+- name: Install docker RPM package
+  yum: name=docker state=latest
+  become: true
+  tags: docker
+
+- name: Configure docker daemon to listen on unix socket and TCP
+  replace: >
+    dest=/etc/sysconfig/docker
+    regexp="^#*\s*OPTIONS=.*"
+    replace='OPTIONS="--selinux-enabled --log-driver=journald --signature-verification=false -H tcp://0.0.0.0:4243 -H unix:///var/run/docker.sock"'
+  tags: docker
+
+- name: Add registry to docker config
+  lineinfile:
+      dest: /etc/sysconfig/docker
+      line: 'ADD_REGISTRY="--add-registry {{ registry }}"'
+  tags: docker
+
+- name: Use devicemapper storage option for docker
+  replace: >
+    dest=/etc/sysconfig/docker-storage
+    regexp="^\s*DOCKER_STORAGE_OPTIONS="
+    replace="DOCKER_STORAGE_OPTIONS='--storage-driver devicemapper'"
+  become: true
+  tags: docker
+
+- name: Set SELinux to permissive
+  selinux:
+      policy: targeted
+      state: permissive
+  tags: docker
+
+- name: Restart Docker
+  systemd: name=docker state=restarted enabled=yes
+  become: true
+  tags: docker
+
+- name: Start and Enable docker
+  systemd: name=docker enabled=yes state=started
+  become: true
+  tags: docker
