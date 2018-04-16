@@ -1,4 +1,4 @@
---
+---
 - name: Install atomic RPM package
   yum: name=atomic state=latest
   become: true
@@ -6,55 +6,55 @@
 
 - name: Build pipeline-scanner container
   docker_image:
-    - path: /opt/scanning/atomic_scanners/pipeline-scanner
+      path: /opt/scanning/atomic_scanners/pipeline-scanner
       name: pipeline-scanner
       tag: rhel7
       state: present
-      Dockerfile: Dockerfile.rhel7
+      dockerfile: Dockerfile.rhel7
       force: yes
   become: true
   tags: scanner
 
 - name: Build scanner-rpm-verify container
   docker_image:
-    - path: /opt/scanning/atomic_scanners/scanner-rpm-verify
+      path: /opt/scanning/atomic_scanners/scanner-rpm-verify
       name: scanner-rpm-verify
       tag: rhel7
       state: present
-      Dockerfile: Dockerfile.rhel7
+      dockerfile: Dockerfile.rhel7
       force: yes
   become: true
   tags: scanner
 
 - name: Build misc-package-updates scanner container
   docker_image:
-    - path: /opt/scanning/atomic_scanners/misc-package-updates
+      path: /opt/scanning/atomic_scanners/misc-package-updates
       name: misc-package-updates
       tag: rhel7
       state: present
-      Dockerfile: Dockerfile.rhel7
+      dockerfile: Dockerfile.rhel7
       force: yes
   become: true
   tags: scanner
 
 - name: Build container-capabilities-scanner container
   docker_image:
-    - path: /opt/scanning/atomic_scanners/container-capabilities-scanner
+      path: /opt/scanning/atomic_scanners/container-capabilities-scanner
       name: container-capabilities-scanner
       tag: rhel7
       state: present
-      Dockerfile: Dockerfile.rhel7
+      dockerfile: Dockerfile.rhel7
       force: yes
   become: true
   tags: scanner
 
 - name: Build scanner-analytics-integration container
   docker_image:
-    - path: /opt/scanning/atomic_scanners/scanner-analytics-integration
+      path: /opt/scanning/atomic_scanners/scanner-analytics-integration
       name: scanner-analytics-integration
       tag: rhel7
       state: present
-      Dockerfile: Dockerfile.rhel7
+      dockerfile: Dockerfile.rhel7
       force: yes
   become: true
   tags: scanner
@@ -67,5 +67,16 @@
     - "misc-package-updates:rhel7"
     - "container-capabilities-scanner:rhel7"
     - "scanner-analytics-integration:rhel7"
+  become: true
+  tags: scanner
+
+- name: Build beanstlkd server RHEL7 based container for scanning module
+  docker_image:
+      path: /opt/scanning/Dockerfiles
+      name: beanstalkd
+      tag: rhel7
+      state: present
+      Dockerfile: Dockerfile.beanstalkd.rhel7
+      force: yes
   become: true
   tags: scanner
