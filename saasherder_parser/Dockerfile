@@ -1,6 +1,8 @@
-FROM registry.centos.org/centos/centos
+FROM registry.centos.org/centos/centos:latest
 
-RUN yum -y install git
+RUN yum -y update; \
+    yum -y install git python-setuptools python-dateutil; \
+    yum clean all
 
 WORKDIR /opt/saasherder
 
