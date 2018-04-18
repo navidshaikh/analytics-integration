@@ -76,7 +76,7 @@
       name: beanstalkd
       tag: rhel7
       state: present
-      Dockerfile: Dockerfile.beanstalkd.rhel7
+      dockerfile: Dockerfile.beanstalkd.rhel7
       force: yes
   become: true
   tags: scanner
