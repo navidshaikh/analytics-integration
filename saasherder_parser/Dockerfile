@@ -6,7 +6,7 @@ RUN yum -y update; \
 
 WORKDIR /opt/saasherder
 
-ADD set-pre-requisite.sh get_repo_details_from_image.sh repo_list /opt/saasherder
+ADD set-pre-requisite.sh get_repo_details_from_image.sh repo_list /opt/saasherder/
 
 RUN bash set-pre-requisite.sh
 
