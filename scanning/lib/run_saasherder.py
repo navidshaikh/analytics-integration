@@ -57,5 +57,10 @@ def run_saasherder(repository):
         # def f(x): return {x.split("=")[0], x.split("=")[-1]}
         f = lambda x: {x.split("=")[0].strip(), x.split("=")[-1].strip()}
         values = {}
-        [values.update(f(x)) for x in lines]
+        try:
+            [values.update(f(x)) for x in lines]
+        except Exception as e:
+            logger.warning("Given repo {} not found via saasherder".format(
+                repository))
+            return None
         return values
