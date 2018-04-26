@@ -77,7 +77,7 @@ class WeeklyScan(object):
         """
         Creates a temp dir in /tmp location
         """
-        dirname = os.path.join(basedir, self.random_string)
+        dirname = os.path.join(basedir, self.random_string())
         try:
             os.makedirs(dirname)
         except OSError as e:
