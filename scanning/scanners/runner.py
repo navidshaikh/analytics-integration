@@ -39,7 +39,7 @@ class ScannerRunner(Scanner):
         # register all scanners
         self.scanners = [
             PipelineScanner,
-            AnalyticsIntegration,
+            # AnalyticsIntegration,
             ScannerRPMVerify,
             MiscPackageUpdates,
             ContainerCapabilities
