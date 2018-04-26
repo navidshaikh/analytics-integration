@@ -21,5 +21,5 @@ TAG_LENGTH=$(saasherder --context $CURRENT_CONTEXT get hash_length $APP_NAME)
 IMAGE_TAG=$(echo $GIT_HASH|cut -c1-$TAG_LENGTH)
 
 echo "git_url=$GIT_URL"
-echo "git_hash=$GIT_HASH"
+echo "git_sha=$GIT_HASH"
 echo "image_tag=$IMAGE_TAG"
