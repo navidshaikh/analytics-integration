@@ -21,9 +21,9 @@ def run_saasherder(repository):
     Returns dict = {"git_url": GIT_URL, "git_sha": GIT_SHA,
                     "image_tag": IMAGE_TAG} on success
     """
-    cmd = ["/bin/bash", SAASHERDER_PARSER, repository]
+    cmd = "/bin/bash {} {}".format(SAASHERDER_PARSER, repository)
     try:
-        output = run_cmd(cmd)
+        output = run_cmd(cmd, shell=True)
     except subprocess.CalledProcessError as e:
         msg = "Error occurred processing saasherder for {}".format(repository)
         msg = msg + "\n{}".format(e)
