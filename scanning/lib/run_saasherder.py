@@ -63,4 +63,5 @@ def run_saasherder(repository):
             logger.warning("Given repo {} not found via saasherder".format(
                 repository))
             return None
+        logger.debug("Repo {} found via saas-herder.".format(repository))
         return values
