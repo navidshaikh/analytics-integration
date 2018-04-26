@@ -25,7 +25,7 @@ def run_saasherder(repository):
     Returns dict = {"git_url": GIT_URL, "git_sha": GIT_SHA,
                     "image_tag": IMAGE_TAG} on success
     """
-    cmd = "cd {} && {} {} && cd -".format(
+    cmd = "cd {} && {} {}".format(
         SAASHERDER_PARSER_DIR, GET_REPO_SCRIPT, repository)
     logger = logging.getLogger("weeklyscan")
     logger.info("Checking repo: {} via saasherder".format(repository))
