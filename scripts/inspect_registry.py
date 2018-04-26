@@ -47,7 +47,7 @@ class InspectRegistry(object):
         returns json loaded reposnse and headers
         """
         try:
-            r = requests.get(url, params)
+            r = requests.get(url, params=params)
         except requests.exceptions.RequestException as e:
             self.logger.critical(
                 "Failed to process URL: {} with params: {}".format(
