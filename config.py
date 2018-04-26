@@ -4,6 +4,6 @@ REGISTRY="registry.devshift.net"
 # whether registry is secured? set True/False
 SECURE_REGISTRY=True
 # empty list means all repos are target namespaces
-TARGET_NAMESPACE=[]
-ANALYTICS_SERVER="ha"
+TARGET_NAMESPACES=[]
+ANALYTICS_SERVER=""
 NOTIFY_EMAILS=["nshaikh@redhat.com"]

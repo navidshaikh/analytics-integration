@@ -7,12 +7,16 @@ on the registry and initializing the scan tasks scan-worker.
 
 import json
 import logging
+import os
+import random
+import string
 
-import requests
 
 from scanning.lib.queue import JobQueue
 from scanning.lib.log import load_logger
 from scanning.lib import settings
+from scanning.lib.run_saasherder import run_saasherder
+from inspect_registry import InspectRegistry
 
 
 class WeeklyScan(object):
@@ -23,185 +27,106 @@ class WeeklyScan(object):
     def __init__(self, sub=None, pub=None):
         # configure logger
         self.logger = logging.getLogger('scan-worker')
-        # initialize beanstalkd queue connection for scan trigger
-        # self.queue = JobQueue(host=settings.BEANSTALKD_HOST,
-        #                      port=settings.BEANSTALKD_PORT,
-        #                      sub=sub, pub=pub, logger=self.logger)
-        # we need registry name for docker pull operations
         self.registry = settings.REGISTRY
-        # we need this for REST API calls
-        self.reg_url = self.secure_registry()
+        self.target_namespaces = settings.TARGET_NAMESPACES
+        self.ir = InspectRegistry(
+            self.registry,
+            settings.SECURE_REGISTRY,
+            self.logger
+        )
+        # initialize beanstalkd queue connection for scan trigger
+        self.queue = JobQueue(host=settings.BEANSTALKD_HOST,
+                              port=settings.BEANSTALKD_PORT,
+                              sub=sub, pub=pub, logger=self.logger)
 
-    def secure_registry(self):
+    def repos_in_registry(self):
         """
-        Checks the config for registry and sets proper registry schema
+        Find repository names available in give registry
         """
-        if settings.SECURE_REGISTRY:
-            return "https://{}".format(self.registry)
-        return "http://{}".format(self.registry)
+        # find all available repositories (not images)
+        repos = self.ir.find_repos()
+        # subset repositories to ones that are required
+        repos = self.ir.subset_repos_on_namespace(
+            repos,
+            self.target_namespaces
+        )
+        return repos
 
-    def get_call(self, url, params=None):
+    def target_image_in_repository(self, repo):
         """
-        Performs GET call on given URL
+        Given a repository name, run saas herder parser and
+        return a container image name (with tag)
+        """
+        values = run_saasherder(repo)
+        if not values or values.get("image_tag", False):
+            self.logger.warning(
+                "Failed to find tag for repo {} using saasherder.".format(
+                    repo))
+            return None
+        return repo + ":" + values.get("image_tag")
 
-        returns json loaded reposnse and headers
+    def random_string(self, size=6):
         """
+        Returns a unique random chars string name of size given
+        """
+        chars = string.ascii_lowercase + string.digits
+        return "".join(random.choice(chars) for _ in range(size))
+
+    def new_logs_dir(self, basedir="/tmp"):
+        """
+        Creates a temp dir in /tmp location
+        """
+        dirname = os.path.join(basedir, self.random_string)
         try:
-            r = requests.get(url, params)
-        except requests.exceptions.RequestException as e:
-            self.logger.critical(
-                "Failed to process URL: {} with params: {}".format(
-                    url, params))
-            self.logger.critical(str(e))
-            return None, None
+            os.makedirs(dirname)
+        except OSError as e:
+            self.logger.warning(
+                "Failing to create {} dir for scanner results. {}".format(
+                    dirname, e))
+            return None
         else:
-            try:
-                content = json.loads(r.text)
-            except ValueError as e:
-                self.logger.critical(
-                    "Failed to load json from {}".format(r.text))
-                return None, None
-            else:
-                return content,  r.headers
-
-    def find_repos(self, api="{}/v2/_catalog", page=30):
-        """
-        Find repositories in configured registry
-
-        Returns: list of all images with tags available in registry
-                 None if REST calls failed
-        """
-        # the repositories in registry could grow large in number
-        # using pagination for same
-        # lets hit registry catalog to get first len(page) repos
-        params = {"n": 30}
-
-        # using https:// based registry URL for REST calls
-        url = api.format(self.reg_url)
-
-        # call catalog call with parameters for pagination
-        resp, headers = self.get_call(url, params)
-
-        # if failed to get repos, return None
-        if not resp:
-            self.logger.fatal(
-                "Failed to retrieve repositories from registry catalog.")
-            return None
-
-        # sample response = {"repositories":["repo1", "repo2"]}
-        # retrieve repositories from response
-        repositories = resp.get("repositories", None)
-
-        # if no repositories are present, return None
-        if not repositories:
-            self.logger.info(
-                "No repositories available in configured registry.")
-            return None
-        # else, repositories now have a list of <= 30 repos
-
-        # now lets do pagination
-        while True:
-            next_page = headers.get("Link", None)
-            if not next_page:
-                break
-
-            # form next page required parameters, need last element last page
-            params = {"n": page, "last": repositories[-1]}
-
-            # call next page
-            resp, headers = self.get_call(url, params)
-            # check if we received repositories
-            if not resp:
-                self.logger.critical(
-                    "Failed to paginate while retrieving repos from registry."
-                    "URL: {}, Params: {}".format(url, params))
-                self.logger.critical(
-                    "Continuing with already retrieved repositories.")
-            # if we received next page, add to retrieved repositories
-            repositories.extend(resp.get("repositories", []))
-
-        self.logger.info(
-            "Total {} repos available in registry.".format(len(repositories)))
-
-        # now return the available repositories
-        return repositories
-
-    def subset_repos_on_namespace(self, repos, namespace=[]):
-        """
-        Return only matching configured namespaced repositories
-        """
-        srepos = []
-        # check if there is a namespace provided else use configured one
-        namespace = namespace or settings.TARGET_NAMESPACE
-        # no filtering, return all repos
-        if not namespace:
-            return repos
-
-        for repo in repos:
-            if repo.startswith(tuple(namespace)):
-                srepos.append(repo)
-
-        # remove duplicates if any
-        return list(set(srepos))
-
-    def find_repo_tags(self, repo, api="{}/v2/{}/tags/list"):
-        """
-        Given a repository name, find the available tags for it
-        Returns a list of tags available for given repository
-        """
-        url = api.format(self.reg_url, repo)
-        tags, _ = self.get_call(url)
-        if not tags:
-            self.logger.critical(
-                "Failed to retrieve tags for {}.".format(repo))
-            return None
-        # reponse has {"name": <image_of_repo>, "tags": ["tag1", "tag2"]}
-        return tags["tags"]
-
-    def images_of_repo(self, repo):
-        """
-        Given a repo name, finds all the tags for repo and form
-        URL for images in given repository
-
-        Returns a list of REGISTRY/REPO:TAG available for given repo
-        """
-        # first find available tags for given repository
-        tags = self.find_repo_tags(repo)
-        if not tags:
-            # return None, if failed to retrieve tags
-            return None
-        # now form the image registry URL
-        # we are using registry URL without https:// for docker pull ops
-        url = self.registry + "/" + repo + ":{}"
-        images = [url.format(tag) for tag in tags]
-        return images
+            return dirname
 
     def run(self):
         """
-        Lists all images in given registry with registry URL which is
-        compatible with docker pull command (no https://) and puts each
-        image for scanning
+        Finds repositories on given registry,
+        subset the repositories as per required/target repositories
+        finds out latest/deployed tag or container image in given repository
+        and put the job for given container images for scanning
         """
-        repositories = self.find_repos()
-        if not repositories:
+        # lets get needed repos in given registry
+        repos = self.repos_in_registry()
+
+        if not repos:
+            self.logger.critical(
+                "No repos found in registry for {} namespace.".format(
+                    self.target_namespaces))
             return None
 
-        repositories = self.subset_repos_on_namespace(repositories)
-        if not repositories:
-            return None
-
-        images = []
-        for repo in repositories:
-            image = self.images_of_repo(repo)
+        for repo in repos:
+            image = self.target_image_in_repository(repo)
             if not image:
+                self.logger.warning(
+                    "Failed to run weekly scan for repo {}.".format(repo))
                 continue
-            self.put_image_for_scanning(image, "/tmp")
-            images.extend(image)
-        return images
+
+            resultdir = self.new_logs_dir()
+            if not resultdir:
+                # retry once more
+                resultdir = self.new_logs_dir()
+                if not resultdir:
+                    self.logger.warning(
+                        "Failed to run weekly scan for repo {}.".format(
+                            repo))
+                continue
+            # now put image for scan
+            self.put_image_for_scanning(image, resultdir)
+            self.logger.info("Queued weekly scanning for {}.".format(image))
+        return "Queued containers for weekly scan."
 
     def put_image_for_scanning(self, image, logs_dir):
         """
-        Put the images
+        Put the image for scanning on beanstalkd tube
         """
         job = {
             "action": "start_scan",
@@ -211,13 +136,10 @@ class WeeklyScan(object):
             "notify_email": settings.NOTIFY_EMAILS,
             "logs_dir": logs_dir,
         }
-        # self.queue.put(json.dumps(job))
+        self.queue.put(json.dumps(job))
 
 
 if __name__ == "__main__":
     load_logger()
     ws = WeeklyScan(sub="master_tube", pub="master_tube")
-    images = ws.run()
-    print len(images)
-    with open("prod_devshift_images.txt", "w") as fin:
-        fin.write("\n".join([str(image) for image in images]))
+    print(ws.run())
