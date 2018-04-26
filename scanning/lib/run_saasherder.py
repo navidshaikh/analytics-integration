@@ -40,8 +40,8 @@ def run_saasherder(repository):
         # lets parse stdout
         try:
             # last 3 lines has git-url, git-sha and image-tag
-            # we want -2 and -3 indexed elements
-            lines = output.strip().split("\n")[-3:-1]
+            # we want -1, -2 and -3 indexed elements
+            lines = output.strip().split("\n")[-3:]
         except Exception as e:
             msg = "Error parsing saasherder output. {}".format(e)
             msg = msg + "Output: " + output
