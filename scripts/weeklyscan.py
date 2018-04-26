@@ -55,15 +55,16 @@ class WeeklyScan(object):
     def target_image_in_repository(self, repo):
         """
         Given a repository name, run saas herder parser and
-        return a container image name (with tag)
+        return a registry/container_image_name:tag
         """
+        # merge registry + repo
         values = run_saasherder(repo)
         if not values or values.get("image_tag", False):
             self.logger.warning(
                 "Failed to find tag for repo {} using saasherder.".format(
                     repo))
             return None
-        return repo + ":" + values.get("image_tag")
+        return self.registry + "/" + repo + ":" + values.get("image_tag")
 
     def random_string(self, size=6):
         """
