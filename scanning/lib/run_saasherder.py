@@ -10,7 +10,10 @@ import subprocess
 from command import run_cmd
 
 
-SAASHERDER_PARSER = "/opt/scanning/saasherder_parser/get_repo_details_from_image.sh"
+SAASHERDER_PARSER_DIR = \
+    "/opt/scanning/saasherder_parser/get_repo_details_from_image.sh"
+
+GET_REPO_SCRIPT = "./get_repo_details_from_image.sh"
 
 
 def run_saasherder(repository):
@@ -21,7 +24,8 @@ def run_saasherder(repository):
     Returns dict = {"git_url": GIT_URL, "git_sha": GIT_SHA,
                     "image_tag": IMAGE_TAG} on success
     """
-    cmd = "/bin/bash {} {}".format(SAASHERDER_PARSER, repository)
+    cmd = "cd {} && {} {} && cd -".format(
+        SAASHERDER_PARSER_DIR, GET_REPO_SCRIPT, repository)
     try:
         output = run_cmd(cmd, shell=True)
     except subprocess.CalledProcessError as e:
@@ -39,6 +43,10 @@ def run_saasherder(repository):
             msg = "Error parsing saasherder output. {}".format(e)
             msg = msg + "Output: " + output
             print msg
+            return None
+
+        if not ("git_url" in lines[0] and "git_sha" in lines[1] and
+                "image_tag" in lines[2]):
             return None
 
         # def f(x): return {x.split("=")[0], x.split("=")[-1]}
