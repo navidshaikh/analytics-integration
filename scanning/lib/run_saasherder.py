@@ -6,6 +6,7 @@ latest tag, git-url and image tag for given container repository.
 """
 
 import subprocess
+import logging
 
 from command import run_cmd
 
@@ -26,12 +27,14 @@ def run_saasherder(repository):
     """
     cmd = "cd {} && {} {} && cd -".format(
         SAASHERDER_PARSER_DIR, GET_REPO_SCRIPT, repository)
+    logger = logging.getLogger("weeklyscan")
+    logger.info("Checking repo: {} via saasherder".format(repository))
     try:
         output = run_cmd(cmd, shell=True)
     except subprocess.CalledProcessError as e:
         msg = "Error occurred processing saasherder for {}".format(repository)
         msg = msg + "\n{}".format(e)
-        print(msg)
+        logger.warning(msg)
         return None
     else:
         # lets parse stdout
@@ -42,11 +45,13 @@ def run_saasherder(repository):
         except Exception as e:
             msg = "Error parsing saasherder output. {}".format(e)
             msg = msg + "Output: " + output
-            print msg
+            logger.warning(msg)
             return None
 
         if not ("git_url" in lines[0] and "git_sha" in lines[1] and
                 "image_tag" in lines[2]):
+            logger.warning("Given repo {} not found via saasherder".format(
+                repository))
             return None
 
         # def f(x): return {x.split("=")[0], x.split("=")[-1]}
