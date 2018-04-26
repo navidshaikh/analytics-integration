@@ -5,7 +5,10 @@ This module is aimed at running saasherder parser to find
 latest tag, git-url and image tag for given container repository.
 """
 
-from command import run_command
+import subprocess
+
+from command import run_cmd
+
 
 SAASHERDER_PARSER = "/opt/scanning/saasherder_parser/get_repo_details_from_image.sh"
 
@@ -20,7 +23,7 @@ def run_saasherder(repository):
     """
     cmd = ["/bin/bash", SAASHERDER_PARSER, repository]
     try:
-        output = run_command(cmd)
+        output = run_cmd(cmd)
     except subprocess.CalledProcessError as e:
         msg = "Error occurred processing saasherder for {}".format(repository)
         msg = msg + "\n{}".format(e)
