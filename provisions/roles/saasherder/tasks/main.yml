@@ -1,4 +1,4 @@
---
+---
 - name: Run pre-requisites script for saas herder
   script: /opt/scanning/saasherder_parser/set-pre-requisite.sh
   args:

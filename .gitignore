@@ -1,4 +1,6 @@
 *.pyc
 *.log
 saasherder_parser/saasherder/
-
+*.retry
+*.answer
+provisions/hosts
