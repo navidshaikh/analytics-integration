@@ -26,7 +26,7 @@ class WeeklyScan(object):
 
     def __init__(self, sub=None, pub=None):
         # configure logger
-        self.logger = logging.getLogger('scan-worker')
+        self.logger = logging.getLogger('weeklyscan')
         self.registry = settings.REGISTRY
         self.target_namespaces = settings.TARGET_NAMESPACES
         self.ir = InspectRegistry(

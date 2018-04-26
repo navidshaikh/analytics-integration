@@ -56,5 +56,11 @@ LOGGING = dict(
             "handlers": ["console"]
 
         },
+        'weeklyscan': {
+            "level": "DEBUG",
+            "propagate": False,
+            "handlers": ["console", "log_to_file"],
+
+        },
     }
 )
