@@ -1,7 +1,6 @@
 *.pyc
 *.log
-saasherder_parser/saasherder/
-saasherder_parser/saasherder/*
+saasherder_parser/saas*
 *.retry
 *.answer
 provisions/hosts

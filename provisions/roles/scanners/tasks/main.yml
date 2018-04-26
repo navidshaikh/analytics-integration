@@ -79,4 +79,6 @@
       dockerfile: Dockerfile.beanstalkd.rhel7
       force: yes
   become: true
-  tags: scanner
+  tags:
+    - scanner
+    - beanstalkd
