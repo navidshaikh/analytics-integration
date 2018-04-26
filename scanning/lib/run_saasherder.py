@@ -55,7 +55,7 @@ def run_saasherder(repository):
             return None
 
         # def f(x): return {x.split("=")[0], x.split("=")[-1]}
-        f = lambda x: {x.split("=")[0].strip(), x.split("=")[-1].strip()}
+        f = lambda x: {x.split("=")[0].strip(): x.split("=")[-1].strip()}
         values = {}
         try:
             [values.update(f(x)) for x in lines]
