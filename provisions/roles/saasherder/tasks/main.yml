@@ -3,3 +3,4 @@
   script: /opt/scanning/saasherder_parser/set-pre-requisite.sh
   args:
     creates: /opt/scanning/saasherder_parser/saasherder
+    chdir: /opt/scanning/saasherder_parser/
