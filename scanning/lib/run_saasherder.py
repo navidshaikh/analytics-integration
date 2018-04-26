@@ -11,7 +11,7 @@ from command import run_cmd
 
 
 SAASHERDER_PARSER_DIR = \
-    "/opt/scanning/saasherder_parser/get_repo_details_from_image.sh"
+    "/opt/scanning/saasherder_parser/"
 
 GET_REPO_SCRIPT = "./get_repo_details_from_image.sh"
 
