@@ -27,6 +27,13 @@
   tags:
     - services
 
+- name: Configure saasherder on the scanning node
+  hosts: scanner
+  roles:
+    - saasherder
+  tags:
+    - saasherder
+
 - name: Configure Weekly scan
   hosts: scanner
   roles:
