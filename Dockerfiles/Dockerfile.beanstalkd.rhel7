@@ -2,8 +2,9 @@ FROM registry.access.redhat.com/rhel7:latest
 
 LABEL RUN='docker run -d -p 11300:11300 $IMAGE'
 
+# fix for employee subscription
 RUN yum -y install deltarpm yum-utils --disablerepo=*-eus-* --disablerepo=*-htb-* \
-    --disablerepo=*-ha-* --disablerepo=*-rt-* --disablerepo=*-lb-* --disablerepo=*-rs-* --disabler
+    --disablerepo=*-ha-* --disablerepo=*-rt-* --disablerepo=*-lb-* --disablerepo=*-rs-* --disablerepo=*-sap-*
 RUN yum-config-manager --disable *-eus-* *-htb-* *-ha-* *-rt-* *-lb-* *-rs-* *-sap-* > /dev/null
 
 RUN yum -y update && \
