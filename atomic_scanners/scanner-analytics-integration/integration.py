@@ -17,6 +17,13 @@ import sys
 OUTDIR = "/scanout"
 INDIR = "/scanin"
 
+TOKEN = open("osio_token.txt").read().strip()
+
+HEADERS = {
+    "content-type": "application/json",
+    "Authorization": "Bearer {}".format(TOKEN)
+}
+
 
 class EmptyLabelException(Exception):
 
@@ -39,6 +46,18 @@ def configure_logging(name="integration-scanner"):
     ch.setFormatter(formatter)
     logger.addHandler(ch)
     return logger
+
+
+def get_env_var(env_name):
+    """
+    Gets the configured given env_name or None
+    """
+    if not os.environ.get(env_name, False):
+        raise ValueError(
+            "No value for {0} env var. Please re-run with: "
+            "{0}=<VALUE> [..] atomic scan [..] ".format(env_name)
+        )
+    return os.environ.get(env_name)
 
 
 def get_server_url(env_name="SERVER"):
@@ -118,9 +137,10 @@ def post_request(endpoint, api, data):
     :param api: API to make POST call against
     :param data: JSON data needed for POST call to api endpoint
 
-    :return: Tuple (status, error_if_any)
+    :return: Tuple (status, error_if_any, status_code)
              where status = True/False
                    error_if_any = string message on error, "" on success
+                   status_code = status_code returned by server
     """
     url = urljoin(endpoint, api)
     # TODO: check if we need API key in data
@@ -128,29 +148,52 @@ def post_request(endpoint, api, data):
         r = requests.post(
             url,
             json.dumps(data),
-            headers={"Content-Type": "application/json"})
+            headers=HEADERS)
     except requests.exceptions.RequestException as e:
         error = ("Could not send POST request to URL {0}, "
                  "with data: {1}.").format(url, str(data))
-        return False, error + " Error: " + str(e)
+        return False, error + " Error: " + str(e), 0
     else:
+        # requests.codes.ok == 200
         if r.status_code == requests.codes.ok:
-            return True, json.loads(r.text)
+            return True, json.loads(r.text), r.status_code
         else:
-            return False, "Returned {} status code on POST request.".format(
-                    r.status_code)
+            return False, "Returned {} status code for {}.".format(
+                r.status_code, url), r.status_code
 
 
-def get_request(endpoint, api):
+def get_request(endpoint, api, data):
     """
     Make a get call to analytics server
 
     :param endpoint: API server end point
     :param api: API to make GET call against
+    :param data: JSON data needed for GET call
 
-    :return: The data received from get call
+    :return: Tuple (status, error_if_any, status_code)
+             where status = True/False
+                   error_if_any = string message on error, "" on success
+                   status_code = status_code returned by server
     """
-    pass
+    url = urljoin(endpoint, api)
+    # TODO: check if we need API key in data
+    try:
+        r = requests.get(
+            url,
+            params=data,
+            headers=HEADERS)
+
+    except requests.exceptions.RequestException as e:
+        error = "Failed to process URL: {} with params {}".format(
+                url, data)
+        return False, error + " Error: " + str(e), 0
+    else:
+        # requests.codes.ok == 200
+        if r.status_code == requests.codes.ok:
+            return True, json.loads(r.text), r.status_code
+        else:
+            return False, "Returned {} status code for {}.".format(
+                r.status_code, url), r.status_code
 
 
 class AnalyticsIntegration(object):
@@ -166,15 +209,11 @@ class AnalyticsIntegration(object):
         self.container = container
         # scan_type = [register, scan, get_report]
         self.scan_type = scan_type
-        self.run_object = atomic_run.Run()
-        # following are the labels must be present in image
-        self.needed_labels_names = ["git-url", "git-sha", "email-ids"]
-        # following three variables need to be processed later
-        self.label_data = None
+        self.api = self.api_name()
         self.image_name = None
         self.server_url = None
-        # This will contain the result/error data
-        self.respone = None
+        self.git_url = None
+        self.git_sha = None
         self.errors = []
         self.failure = True
         # the labels needed for calling server APIs
@@ -185,6 +224,18 @@ class AnalyticsIntegration(object):
         self.json_out = self.template_json_data(self.scanner,
                                                 self.scan_type,
                                                 container[1:])
+
+    def api_name(self):
+        """
+        Returns API name based on scan type
+        """
+        # post request
+        if self.scan_type == "register":
+            return "/api/v1/register"
+
+        # get request
+        elif self.scan_type == "report":
+            return "/api/v1/report"
 
     def template_json_data(self, scanner, scan_type, uuid):
         """
@@ -204,62 +255,20 @@ class AnalyticsIntegration(object):
         return json_out
 
     def record_fatal_error(self, error):
+        """
+        Appends fatal error and returns during exit
+        """
         self.errors.append(str(error))
-
-    def record_label(self, name, value):
-        self.recorded_labels[name] = value.strip()
-
-    def post_scanner_error(self):
-        """
-        Upon issues with input data to scanner, invoke /scanner-error POST API
-        """
-        # in case of SERVER env var is not give, we wont be able to even
-        # post the error to /scanner-error APIs
-        if not self.server_url:
-            msg = ("Can't report errors via /scanner-error API, "
-                   "as SERVER URL is not given in scanner command.")
-            return False, msg
-
-        post_data = {
-            "image-name": self.data.get("image_name", ""),
-            "email-ids": self.recorded_labels.get("email-ids", ""),
-            "error": self.errors,
-        }
-
-        api = "/api/v1/scanner-error"
-
-        status, out = post_request(endpoint=self.server_url,
-                                   api=api,
-                                   data=post_data)
-        if not status:
-            return status, out
-        else:
-            return True, "Reported errors via /scanner-error POST API."
-
-    def return_on_failure(self):
-        if self.failure:
-            # report errors on analytics server before returning the scanner
-            status, out = self.post_scanner_error()
-            # in either case of whethere status=true/false, add note in Summary
-            # about status for reporting the errors via /scanner-error API
-            self.errors.append(out)
-            current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
-            self.json_out["Finished Time"] = current_time
-            self.json_out["Successful"] = False
-            self.json_out["Scan Results"] = self.data
-            self.json_out["Summary"] = "Error: %s" % str(self.errors)
-            return False, self.json_out
-
-    def verify_recorded_labels(self):
-        pass
 
     def run(self):
         """
         Run the needed tasks for scanning container under test
         """
         try:
-            self.image_name = get_image_name()
-            self.server_url = get_server_url()
+            self.image_name = get_env_var("IMAGE_NAME")
+            self.server_url = get_env_var("SERVER")
+            self.git_url = get_env_var("GIT_URL")
+            self.git_sha = get_env_var("GIT_SHA")
         except ValueError as e:
             self.record_fatal_error(e)
             self.failure = True
@@ -269,75 +278,84 @@ class AnalyticsIntegration(object):
             # set the data right away for ensuring its exported
             self.data["image_name"] = self.image_name
             self.data["server_url"] = self.server_url
+            self.data["git-url"] = self.git_url
+            self.data["git-sha"] = self.git_sha
 
-        try:
-            self.docker_client = connect_local_docker_socket()
-        except Exception as e:
-            self.record_fatal_error(e)
-            self.failure = True
-            return self.return_on_failure()
-        else:
-            self.failure = False
-
-        self.run_object.image = self.image_name
-        for label in self.needed_labels_names:
-            try:
-                value = find_label(self.run_object, self.image_name, label)
-            except EmptyLabelException as e:
-                self.record_fatal_error(e)
-                self.failure = True
-            else:
-                self.failure = False
-                self.record_label(label, value)
-        # this operation is clubbed with above for loop
-        # intended to run after the loop is complete
+        # this operation is clubbed with above operations
         if self.failure:
             return self.return_on_failure()
 
-        # if label retrieval is complete, verify the recorded labels
-        self.verify_recorded_labels()
+        # post request
+        if self.scan_type == "register":
+            return self.handle_register()
 
-        # record the labels in data as well
-        self.data.update(self.recorded_labels)
+        # get request
+        elif self.scan_type == "report":
+            return self.handle_report()
 
-        if self.scan_type in ["register", "scan"]:
-            api = "/api/v1/register"
-        # TODO: add case report command
-        else:
-            api = "/api/v1/register"
+    def handle_register(self):
+        """
+        Handles /register POST API call
+        """
+        request_data = {"git-url": self.data["git-url"],
+                        "git-sha": self.data["git-sha"]}
 
-        status, resp = post_request(endpoint=self.server_url,
-                                    api=api,
-                                    data=self.recorded_labels)
+        status, resp, s_code = post_request(endpoint=self.server_url,
+                                            api=self.api,
+                                            data=request_data)
         if not status:
             self.failure = True
             self.record_fatal_error(resp)
-            return self.return_on_failure()
+            return self.return_on_failure(s_code)
 
         # if there are no return on data failures, return True
-        return self.return_on_success(resp)
+        return self.return_on_success(resp, status_code=s_code)
 
-    def return_on_success(self, resp):
+    def handle_report(self):
+        """
+        Handles /report GET API call
+        """
+        request_data = {"git-url": self.data["git-url"],
+                        "git-sha": self.data["git-sha"]}
+
+        status, resp, s_code = get_request(endpoint=self.server_url,
+                                           api=self.api,
+                                           data=request_data)
+        if not status:
+            self.failure = True
+            self.record_fatal_error(resp)
+            return self.return_on_failure(s_code)
+
+        # if there are no return on data failures, return True
+        return self.return_on_success(resp, status_code=s_code)
+
+    def return_on_failure(self, status_code=None):
+        """
+        Upon failure in running operation this method is called
+        """
+        self.json_out["Successful"] = False
+        current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
+        self.json_out["Finished Time"] = current_time
+        self.json_out["Summary"] = \
+            "{} API failed. Error: {}".format(self.api, self.errors)
+        self.json_out["api"] = self.api
+        self.json_out["api_data"] = self.data
+        self.json_out["api_status_code"] = status_code or 0
+        return False, self.json_out
+
+    def return_on_success(self, resp, status_code):
         """
         Process output of scanner after successful POST call to server
         """
         self.json_out["Successful"] = True
         current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
         self.json_out["Finished Time"] = current_time
-        # if repository is registered for first time, no `last_scan_report`
-        # key will be there
-        if "last_scan_report" in resp:
-            self.json_out["Scan Results"] = resp
-            self.json_out["Summary"] = (
-                "Last scan report available in 'Scan Results' field.")
-        else:
-            # `last_scan_report` is in response if it is subsequent call
-            self.json_out["Scan Results"] = self.data
-            self.json_out["Summary"] = (
-                "Registered repository for scan, "
-                "report will be availble in next run after some time.")
-
-        # return True and output data from scanner
+        self.json_out["Summary"] = "API call {} succeeded.".format(
+            self.api)
+        self.json_out["Scan Results"] = resp
+        self.json_out["api"] = self.api
+        self.json_out["api_data"] = self.data
+        self.json_out["api_status_code"] = status_code
         return True, self.json_out
 
 
@@ -363,7 +381,6 @@ class Scanner(object):
 
     def run(self):
         for container in self.target_containers():
-
             per_scan_object = AnalyticsIntegration(container, self.scan_type)
             status, output = per_scan_object.run()
             print ("Scanner execution status: %s" % status)
