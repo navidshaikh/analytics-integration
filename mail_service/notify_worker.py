@@ -48,10 +48,12 @@ class NotifyUser(object):
 
     def send_email(self, subject, contents, attachments):
         "Sends email to user"
+        to_emails = " ".join(
+            email for email in self.job_info.get("notify_email"))
         subprocess.call([
             self.send_mail_command,
             subject,
-            self.job_info["notify_email"],
+            to_emails,
             self._escape_text_(contents),
             attachments])
 
@@ -129,7 +131,9 @@ class NotifyUser(object):
         return text
 
     def get_attachments(self):
-        return " ".join(["-a {}".format(a) for a in self.scanners_status["logs_file_path"].values()])
+        return " ".join(
+            ["-a {}".format(a) for a in
+             self.scanners_status["logs_file_path"].values()])
 
     def notify_user(self):
         """
