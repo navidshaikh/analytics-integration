@@ -27,7 +27,7 @@ class NotifyUser(object):
     def __init__(self, job_info):
 
         self.send_mail_command = \
-            "/root/analytics-integration/mail_service/send_mail.sh"
+            "/opt/scanning/mail_service/send_mail.sh"
         self.job_info = job_info
 
         self.image_under_test = job_info.get("image_under_test")
