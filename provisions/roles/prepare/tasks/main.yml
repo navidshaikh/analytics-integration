@@ -6,3 +6,10 @@
       mode: push
   become: true
   tags: prepare
+
+- name: Install mailx RPM on scanner node for mail notifications
+  yum: name=mailx state=latest
+  become: true
+  tags:
+    - prepare
+    - mail
