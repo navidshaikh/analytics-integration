@@ -13,7 +13,7 @@ load_logger()
 
 logger = logging.getLogger('mail-service')
 
-bs = beanstalkc.Connection(host="172.17.0.1")
+bs = beanstalkc.Connection(host="0.0.0.0")
 bs.watch("notify")
 
 SCANNERS_STATUS = "scanners_status.json"
