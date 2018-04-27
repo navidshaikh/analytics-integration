@@ -47,6 +47,9 @@ class Scanner(object):
         self.mount_obj.options = ["rw"]
         # provide mount point
         self.mount_obj.mountpoint = self.image_mountpath
+        # set default for res_dir, this is a dir which is created
+        # by atomic, default result location
+        self.res_dir = None
 
     def run_cmd(self, cmd):
         """
@@ -306,6 +309,9 @@ class Scanner(object):
         """
         Remove the default location of results by atomic scan
         """
+        if not self.res_dir:
+            return
+
         if os.path.isdir(self.res_dir):
             try:
                 shutil.rmtree(self.res_dir)
