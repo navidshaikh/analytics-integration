@@ -1,9 +1,4 @@
 ---
-- name: Install atomic RPM package
-  yum: name=atomic state=latest
-  become: true
-  tags: scanner
-
 - name: Build pipeline-scanner container
   docker_image:
       path: /opt/scanning/atomic_scanners/pipeline-scanner
