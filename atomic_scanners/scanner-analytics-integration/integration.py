@@ -1,11 +1,8 @@
 #!/usr/bin/env python2
 
-from Atomic import run as atomic_run
-
 from requests.compat import urljoin
 from datetime import datetime
 
-import docker
 import json
 import logging
 import os
@@ -58,37 +55,6 @@ def get_env_var(env_name):
             "{0}=<VALUE> [..] atomic scan [..] ".format(env_name)
         )
     return os.environ.get(env_name)
-
-
-def get_server_url(env_name="SERVER"):
-    """
-    Gets the SERVER env variable value
-    """
-    if not os.environ.get("SERVER", False):
-        raise ValueError(
-            "No value for SERVER env variable. Please re-run with: "
-            "SERVER=<url> IMAGE_NAME=<image> atomic scan [..]")
-    return os.environ.get("SERVER")
-
-
-def get_image_name(env_name="IMAGE_NAME"):
-    """
-    Gets the IMAGE env variable value
-    """
-    if not os.environ.get("IMAGE_NAME", False):
-        raise ValueError(
-            "No value for IMAGE_NAME env variable. Please re-run with: "
-            "SERVER=<url> IMAGE_NAME=<image> atomic scan [..]"
-        )
-    return os.environ.get("IMAGE_NAME")
-
-
-def connect_local_docker_socket(base_url="unix:///var/run/docker.sock"):
-    """
-    Initiates local docker client connection
-    """
-    client = docker.Client(base_url=base_url)
-    return client
 
 
 def get_image_uuid(client, image_name):
