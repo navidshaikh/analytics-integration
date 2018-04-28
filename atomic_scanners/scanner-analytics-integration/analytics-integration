@@ -2,7 +2,7 @@ type: scanner
 scanner_name: analytics-integration
 image_name: scanner-analytics-integration:rhel7
 default_scan: register
-custom_args: ["-v", "/var/run/docker.sock:/var/run/docker.sock", "-e", "IMAGE_NAME=$IMAGE_NAME", "-e", "SERVER=$SERVER"]
+custom_args: ["-v", "/var/run/docker.sock:/var/run/docker.sock", "-e", "IMAGE_NAME=$IMAGE_NAME", "-e", "SERVER=$SERVER", "-e", "GITSHA=$GITSHA", "-e", "GITURL=$GITURL"]
 scans: [
   {
     name: register,
