@@ -83,6 +83,9 @@ class WeeklyScan(object):
         finds out latest/deployed tag or container image in given repository
         and put the job for given container images for scanning
         """
+
+        self.logger.info("Starting weekly scan for containers in {}".format(
+            self.registry))
         # lets get needed repos in given registry
         repos = self.repos_in_registry()
 

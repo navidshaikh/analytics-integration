@@ -79,6 +79,7 @@ class InspectRegistry(object):
         # using https:// based registry URL for REST calls
         url = CATALOG.format(self.reg_url)
 
+        self.logger.info("Finding repos in registry {}".format(self.registry))
         # call catalog call with parameters for pagination
         resp, headers = self.get_call(url, params)
 
