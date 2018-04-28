@@ -52,21 +52,6 @@ class WeeklyScan(object):
         )
         return repos
 
-    def target_image_in_repository(self, repo):
-        """
-        Given a repository name, run saas herder parser and
-        return a registry/container_image_name:tag
-        """
-        # merge registry + repo
-        values = run_saasherder(repo)
-        self.logger.debug("Values found via saas herder {}".format(values))
-        if not values or not values.get("image_tag", False):
-            self.logger.warning(
-                "Failed to find tag for repo {} using saasherder.".format(
-                    repo))
-            return None
-        return self.registry + "/" + repo + ":" + values.get("image_tag")
-
     def random_string(self, size=3):
         """
         Returns a unique random chars string name of size given
@@ -108,27 +93,33 @@ class WeeklyScan(object):
             return None
 
         for repo in repos:
-            image = self.target_image_in_repository(repo)
-            if not image:
-                self.logger.warning(
-                    "Failed to run weekly scan for repo {}.".format(repo))
+            self.logger.debug("Checking {} via saasherder".format(repo))
+            # running saasherder
+            values = run_saasherder(repo)
+            # case where repo is not located by saasherder
+            if not values:
                 continue
 
+            self.logger.debug("Values found via saas herder {}".format(values))
+            # run_saasherder function ensures values has "image-tag"
+            image = self.registry + "/" + repo + ":" + values.get("image-tag")
+
+            # create logs dir
             resultdir = self.new_logs_dir()
             if not resultdir:
                 # retry once more
                 resultdir = self.new_logs_dir()
                 if not resultdir:
                     self.logger.warning(
-                        "Failed to run weekly scan for repo {}.".format(
-                            repo))
-                continue
+                        "Can't create result dir for repo {}."
+                        "Failed to run weekly scan for it.".format(repo))
+                    continue
             # now put image for scan
-            self.put_image_for_scanning(image, resultdir)
+            self.put_image_for_scanning(image, resultdir, values)
             self.logger.info("Queued weekly scanning for {}.".format(image))
         return "Queued containers for weekly scan."
 
-    def put_image_for_scanning(self, image, logs_dir):
+    def put_image_for_scanning(self, image, logs_dir, values):
         """
         Put the image for scanning on beanstalkd tube
         """
@@ -139,6 +130,8 @@ class WeeklyScan(object):
             "analytics_server": settings.ANALYTICS_SERVER,
             "notify_email": settings.NOTIFY_EMAILS,
             "logs_dir": logs_dir,
+            "git-url": values.get("git-url"),
+            "git-sha": values.get("git-sha")
         }
         self.queue.put(json.dumps(job))
 
