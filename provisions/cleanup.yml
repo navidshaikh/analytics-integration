@@ -1,6 +1,6 @@
 ---
 - name: Stop scanning module services
-  host: scanner
+  hosts: scanner
   roles:
     - stopservices
   tags:
