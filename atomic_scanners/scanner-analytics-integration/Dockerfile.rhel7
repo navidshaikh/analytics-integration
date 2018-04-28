@@ -13,4 +13,4 @@ RUN yum -y update && \
     yum -y install atomic python-docker-py && \
     yum clean all
 
-ADD analytics-integration integration.py install.sh /
+ADD analytics-integration integration.py install.sh osio_token.txt /
