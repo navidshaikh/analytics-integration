@@ -22,12 +22,6 @@ HEADERS = {
 }
 
 
-class EmptyLabelException(Exception):
-
-    def __init__(self, message):
-        super(EmptyLabelException, self).__init__(message)
-
-
 def configure_logging(name="integration-scanner"):
     """
     Configures logging and returns logger object
@@ -62,18 +56,6 @@ def get_image_uuid(client, image_name):
     Using passed docker client object, returns image uuid for image_name.
     """
     return client.inspect_image(image_name)["Id"].split(":")[-1]
-
-
-def find_label(run_object, image, label):
-    """
-    For given image, return the value for label
-    """
-    label_value = run_object.get_label(label)
-    if not label_value:
-        raise EmptyLabelException(
-            "Image %s does not have %s label configured." % (image, label)
-        )
-    return label_value
 
 
 def run_command(cmd, shell=True):
@@ -182,8 +164,6 @@ class AnalyticsIntegration(object):
         self.git_sha = None
         self.errors = []
         self.failure = True
-        # the labels needed for calling server APIs
-        self.recorded_labels = {}
         # the needed data to be logged in scanner output
         self.data = {}
         # the templated data this scanner will export
