@@ -70,5 +70,5 @@ def run_saasherder(repository):
             return None
         # case where saasherder exported desired results
         logger.warning("Located repo {} via saasherder. Values: {}".format(
-            values))
+            repository, values))
         return values
