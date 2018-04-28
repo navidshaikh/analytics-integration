@@ -3,4 +3,8 @@
   script: /opt/scanning/saasherder_parser/set-pre-requisite.sh
   args:
     creates: /opt/scanning/saasherder_parser/saasherder
+    creates: /opt/scanning/saasherder_parser/saas-analytics
+    creates: /opt/scanning/saasherder_parser/saas-chat
+    creates: /opt/scanning/saasherder_parser/saas-launchpad
+    creates: /opt/scanning/saasherder_parser/saas-openshiftio
     chdir: /opt/scanning/saasherder_parser/
