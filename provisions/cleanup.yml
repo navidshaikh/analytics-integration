@@ -7,3 +7,11 @@
     - cleanup
     - stopservices
 
+- name: Clean saasherder and its residues from system
+  hosts: scanner
+  roles:
+    - cleansaasherder
+  tags:
+    - cleanup
+    - cleansaasherder
+

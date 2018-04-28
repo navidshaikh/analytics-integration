@@ -1,0 +1,16 @@
+---
+- name: Uninstall saasherder python package
+  shell: pip uninstall -y saasherder
+  become: true
+  ignore_errors: yes
+
+- name: Remove saasherder and respective git clones
+  file: path={{ item }} state=absent
+  with_items:
+    - /opt/scanning/saasherder_parser/saasherder
+    - /opt/scanning/saasherder_parser/saas-analytics
+    - /opt/scanning/saasherder_parser/saas-chat
+    - /opt/scanning/saasherder_parser/saas-launchpad
+    - /opt/scanning/saasherder_parser/saas-openshiftio
+  become: true
+  ignore_errors: yes
