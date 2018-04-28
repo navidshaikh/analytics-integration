@@ -177,7 +177,7 @@ class AnalyticsIntegration(object):
         self.scan_type = scan_type
         self.api = self.api_name()
         self.image_name = None
-        self.server_url = None
+        self.server = None
         self.git_url = None
         self.git_sha = None
         self.errors = []
@@ -232,9 +232,9 @@ class AnalyticsIntegration(object):
         """
         try:
             self.image_name = get_env_var("IMAGE_NAME")
-            self.server_url = get_env_var("SERVER")
-            self.git_url = get_env_var("GIT_URL")
-            self.git_sha = get_env_var("GIT_SHA")
+            self.server = get_env_var("SERVER")
+            self.git_url = get_env_var("GITURL")
+            self.git_sha = get_env_var("GITSHA")
         except ValueError as e:
             self.record_fatal_error(e)
             self.failure = True
@@ -243,7 +243,7 @@ class AnalyticsIntegration(object):
             self.failure = False
             # set the data right away for ensuring its exported
             self.data["image_name"] = self.image_name
-            self.data["server_url"] = self.server_url
+            self.data["server"] = self.server
             self.data["git-url"] = self.git_url
             self.data["git-sha"] = self.git_sha
 
@@ -266,7 +266,7 @@ class AnalyticsIntegration(object):
         request_data = {"git-url": self.data["git-url"],
                         "git-sha": self.data["git-sha"]}
 
-        status, resp, s_code = post_request(endpoint=self.server_url,
+        status, resp, s_code = post_request(endpoint=self.server,
                                             api=self.api,
                                             data=request_data)
         if not status:
@@ -284,7 +284,7 @@ class AnalyticsIntegration(object):
         request_data = {"git-url": self.data["git-url"],
                         "git-sha": self.data["git-sha"]}
 
-        status, resp, s_code = get_request(endpoint=self.server_url,
+        status, resp, s_code = get_request(endpoint=self.server,
                                            api=self.api,
                                            data=request_data)
         if not status:
