@@ -5,12 +5,12 @@ This module iniializes the weekly scan by finding out the list of images
 on the registry and initializing the scan tasks scan-worker.
 """
 
+import datetime
 import json
 import logging
 import os
 import random
 import string
-
 
 from scanning.lib.queue import JobQueue
 from scanning.lib.log import load_logger
@@ -67,12 +67,14 @@ class WeeklyScan(object):
             return None
         return self.registry + "/" + repo + ":" + values.get("image_tag")
 
-    def random_string(self, size=6):
+    def random_string(self, size=3):
         """
         Returns a unique random chars string name of size given
         """
+        ts = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
         chars = string.ascii_lowercase + string.digits
-        return "".join(random.choice(chars) for _ in range(size))
+        rc = "".join(random.choice(chars) for _ in range(size))
+        return "{}-{}-scan".format(ts, rc)
 
     def new_logs_dir(self, basedir="/tmp"):
         """
