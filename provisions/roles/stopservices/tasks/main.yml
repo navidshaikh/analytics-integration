@@ -1,0 +1,17 @@
+---
+- name: Stop and remove beanstalkd server container
+  shell: docker stop beanstalkd_server && docker rm beanstalkd_server
+  ignore_errors: true
+  become: true
+  tags: stopbeanstalkd
+
+- name: Stop systemd services for scanning
+  service: name={{ item }} state=stopped enabled=no
+  with_items:
+    - dispatcher-worker.service
+    - scan-worker.service
+    - notify-worker.service
+  become: true
+  ignore_errors: yes
+  tags: stopsystemdservice
+

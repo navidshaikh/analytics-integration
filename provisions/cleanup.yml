@@ -1,0 +1,9 @@
+---
+- name: Stop scanning module services
+  host: scanner
+  roles:
+    - stopservices
+  tags:
+    - cleanup
+    - stopservices
+
