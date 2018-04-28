@@ -16,7 +16,7 @@ class AnalyticsIntegration(Scanner):
         self.scanner = "analytics-integration"
         self.result_file = "analytics_scanner_results.json"
 
-    def run(self, image, analytics_server):
+    def run(self, image, server, giturl, gitsha):
         """Run the scanner."""
         # initializing a blank list that will contain results from all the
         # scan types of this scanner
@@ -27,7 +27,11 @@ class AnalyticsIntegration(Scanner):
         )
 
         # this scanner needs following two env vars for atomic scan command
-        env_vars = {"IMAGE_NAME": image, "SERVER": analytics_server}
+        env_vars = {
+            "IMAGE_NAME": image,
+            "SERVER": server,
+            "GITURL": giturl,
+            "GITSHA": gitsha}
 
         data = self.scan(process_output=False, env_vars=env_vars)
 

@@ -114,20 +114,21 @@ class ScannerRunner(Scanner):
                 "Exported scanner result file {}".format(result_file))
             return True
 
-    def run_a_scanner(self, scanner_obj, image, analytics_server=None):
+    def run_a_scanner(self, obj, image,
+                      server=None, giturl=None, gitsha=None):
         """
         Run the given scanner on image.
         """
         # if its analytics integration scanner
-        if analytics_server:
-            data = scanner_obj.run(image, analytics_server)
-
+        if server:
+            # pass server, giturl, gitsha to analytics-integration scanner
+            data = obj.run(image, server, giturl, gitsha)
         else:
             # should receive the JSON data loaded
-            data = scanner_obj.run(image)
+            data = obj.run(image)
 
         self.logger.info("Finished running {} scanner.".format(
-            scanner_obj.scanner))
+            obj.scanner))
 
         return data
 
@@ -165,16 +166,19 @@ class ScannerRunner(Scanner):
             # if analytics_integration scanner, provide extra arg
             if scanner_obj.__class__.__name__ == "AnalyticsIntegration":
                 server = self.job.get("analytics_server", None)
-                if not server:
+                giturl = self.job.get("git-url", None)
+                gitsha = self.job.get("git-sha", None)
+                if not server or not giturl or not gitsha:
                     self.logger.critical(
-                        "analytics-integration scanner is registered, but"
-                        "analytics_server URL not present in job data."
-                        "Skipping to run the scanner.")
+                        "scanner-analytics-integration is registered, but"
+                        "server/git-url/git-sha values are not present "
+                        "in job data. Skipping to run the scanner for "
+                        "{}.".format(image))
                     continue
                 else:
                     # execute analytics scanner and provide server url
                     result = self.run_a_scanner(
-                        scanner_obj, image, server)
+                        scanner_obj, image, server, giturl, gitsha)
 
             # or if its any other scanner, run with
             else:
