@@ -60,7 +60,7 @@ class WeeklyScan(object):
         # merge registry + repo
         values = run_saasherder(repo)
         self.logger.debug("Values found via saas herder {}".format(values))
-        if not values or "image_tag" not in values:
+        if not values or not values.get("image_tag", False):
             self.logger.warning(
                 "Failed to find tag for repo {} using saasherder.".format(
                     repo))
