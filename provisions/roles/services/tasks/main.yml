@@ -9,6 +9,10 @@
       detach: yes
       ports:
        - "0.0.0.0:11300:11300/tcp"
+  become: true
+  tags:
+    - services
+    - beanstalkd
 
 - name: Copy systemd service files for services in scanning
   copy: src="{{ role_path }}/../../../scripts/{{ item }}" dest=/etc/systemd/system/ mode=u+x
