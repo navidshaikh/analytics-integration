@@ -96,7 +96,8 @@ class WeeklyScan(object):
             return None
 
         for repo in repos:
-            self.logger.debug("Checking {} via saasherder".format(repo))
+            self.logger.info("Checking repo: {} via saasherder".format(repo))
+
             # running saasherder
             values = run_saasherder(repo)
             # case where repo is not located by saasherder
