@@ -329,7 +329,9 @@ class Scanner(object):
         for container in self.target_containers():
             per_scan_object = AnalyticsIntegration(container, self.scan_type)
             status, output = per_scan_object.run()
-            print ("Scanner execution status: %s" % status)
+            print ("Scanner execution status: {}".format(status))
+            print ("api_status_code: {}".format(
+                output.get("api_status_code", 404)))
 
             # Write scan results to json file
             out_path = os.path.join(OUTDIR, container)
