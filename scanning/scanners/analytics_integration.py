@@ -16,7 +16,7 @@ class AnalyticsIntegration(Scanner):
         self.scanner = "analytics-integration"
         self.result_file = "analytics_scanner_results.json"
 
-    def run(self, image, server, giturl, gitsha):
+    def run(self, image, server, giturl, gitsha, scan_type="register"):
         """Run the scanner."""
         # initializing a blank list that will contain results from all the
         # scan types of this scanner
@@ -33,7 +33,8 @@ class AnalyticsIntegration(Scanner):
             "GITURL": giturl,
             "GITSHA": gitsha}
 
-        data = self.scan(process_output=False, env_vars=env_vars)
+        data = self.scan(
+            process_output=False, env_vars=env_vars, scan_type=scan_type)
 
         # invoke base class's cleanup utility
         self.cleanup()
