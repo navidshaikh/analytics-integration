@@ -296,8 +296,9 @@ class AnalyticsIntegration(object):
         self.json_out["Successful"] = True
         current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
         self.json_out["Finished Time"] = current_time
-        self.json_out["Summary"] = "API call {} succeeded.".format(
-            self.api)
+        self.json_out["Summary"] = (
+            "Registered container at gemini server for scanning."
+            " Report will be available in next scan run after polling.")
         self.json_out["Scan Results"] = resp
         self.json_out["api"] = self.api
         self.json_out["api_data"] = self.data
