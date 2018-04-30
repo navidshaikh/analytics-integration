@@ -119,8 +119,29 @@ class WeeklyScan(object):
                     continue
             # now put image for scan
             self.put_image_for_scanning(image, resultdir, values)
+            # now job for polling tube so that jenkins can poll the /report api
+            self.put_image_for_polling(image, resultdir, values)
             self.logger.info("Queued weekly scanning for {}.".format(image))
         return "Queued containers for weekly scan."
+
+    def put_image_for_polling(self, image, logs_dir, values):
+        """
+        Put the job on polling tube
+        """
+        poll_tube = "poll_server"
+        job = {
+            "action": "start_scan",
+            "weekly": "True",
+            "image_under_test": image,
+            "analytics_server": settings.ANALYTICS_SERVER,
+            "notify_email": settings.NOTIFY_EMAILS,
+            "logs_dir": logs_dir,
+            "git-sha": values.get("git-sha"),
+            "git-url": values.get("git-url"),
+        }
+        # set tube param to method call explicitly here
+        self.queue.put(json.dumps(job), tube=poll_tube)
+        self.logger.info("Queued job at {} queue.".format(poll_tube))
 
     def put_image_for_scanning(self, image, logs_dir, values):
         """
