@@ -1,0 +1,37 @@
+- project:
+    name: api-server-poll-job
+    jobs:
+        - {{ api-server-poll-job-name }}:
+            image_under_test: {{ image_under_test }}
+            analytics_server: {{ analytics_server }}
+            git-url: {{ git-url }}
+            git-sha: {{ git-sha }}
+
+- job-template:
+    name: {{ api-server-poll-job-name }}
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    properties:
+        - github:
+            url: "{git_url}"
+    scm:
+        - git:
+            skip-tag: True
+            git-tool: ci-git
+            branches:
+                - "{git_branch}"
+            remotes:
+              - prebuild-source:
+                  url: "{git_url}"
+    builders:
+        - shell: |
+            sudo docker tag registry.access.redhat.com/rhel7:latest "{image_under_test}"
+            STATUS_CODE=$(sudo SERVER={analytics_server} IMAGE_NAME={image_under_test} GITURL={git-url} GITSHA={git-sha} atomic scan --verbose --scanner=analytics-integration --scan_type=report {image_under_test}|grep api_status_code|cut -f2 -d ":"|cut -c2-4)
+            if [ "$STATUS_CODE" == "200" ]; then
+                echo "Success"
+                gemini_report=True
+                go_for_snalytics_scanner.py {image_under_test} {analytics_server} {git-url} {git-sha} {gemini_report}
+                sudo touch do_not_poll
+            else
+                echo "Failure"
+                gemini_report=False
