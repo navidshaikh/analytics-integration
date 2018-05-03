@@ -67,6 +67,6 @@ LOGGING = dict(
             "propagate": False,
             "handlers": ["console", "log_to_file"],
 
-        },
+        }
     }
 )
