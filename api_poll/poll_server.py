@@ -5,7 +5,7 @@ This module contains the worker that handles the scanning.
 """
 import json
 import logging
-
+import sys
 import yaml
 from jinja2 import Environment, FileSystemLoader
 
@@ -25,10 +25,10 @@ try:
         job = conn.reserve()
     else:
         print(" No job in tube")
-        exit 0
+        sys.exit(0)
 except Exception as e:
     print("Could not retrieve job details")
-    exit 1
+    sys.exit(1)
 
 project["image_under_test"] = job.get("image_under_test")
 project["analytics_server"] = job.get("analytics_server")
