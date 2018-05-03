@@ -33,15 +33,20 @@ def poll_server(template_location):
     except Exception as e:
         logger.warning("Could not retrieve job details:%s " % str(e))
 
-    project["image_under_test"] = job.get("image_under_test")
+    image_under_test = job.get("image_under_test")
+    project["image_under_test"] = image_under_test
     project["analytics_server"] = job.get("analytics_server")
     project["git-sha"] = job.get("git-sha")
     project["git-url"] = job.get("git-url")
+    project[
+        "api-server-poll-job-name"] = image_under_test.replace(
+            "/", "-").replace(".", "-")
 
     try:
         env = Environment(loader=FileSystemLoader(
             './'), trim_blocks=True, lstrip_blocks=True)
         template = env.get_template("api-server-poll.yml")
+        logger.info("Project details got is: %s" % str(project))
         job_details = template.render(project)
         logger.info("Template is rendered with project: %s" % str(project))
     except Exception as e:
