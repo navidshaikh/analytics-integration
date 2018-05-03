@@ -1,51 +1,41 @@
 - project:
     name: api-server-poll-job
     jobs:
-        - {{ api-server-poll-job-name }}:
+        - {{ api_server_poll_job_name }}:
+            api_server_poll_job_name: {{ api_server_poll_job_name }}
             image_under_test: {{ image_under_test }}
             analytics_server: {{ analytics_server }}
-            git-url: {{ git-url }}
-            git-sha: {{ git-sha }}
+            git_url: {{ git_url }}
+            git_sha: {{ git_sha }}
 
 - job-template:
-    name: {{ api-server-poll-job-name }}
+    name: {{ api_server_poll_job_name }}
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
-    properties:
-        - github:
-            url: "{git_url}"
-    scm:
-        - git:
-            skip-tag: True
-            git-tool: ci-git
-            branches:
-                - "{git_branch}"
-            remotes:
-              - prebuild-source:
-                  url: "{git_url}"
     builders:
         - shell: |
+            COUNTER=0
             if [ -f counter.txt ]; then
-	            COUNTER=$(cat counter.txt)
+              COUNTER=$(cat counter.txt)
             else
-	            COUNTER=0
+              COUNTER=0
             fi
 
             echo "This is $COUNTER no run"
 
             if [ $COUNTER -lt 24 && ![ -f do_not_poll ] ]; then
                 sudo docker tag registry.access.redhat.com/rhel7:latest {image_under_test}
-                STATUS_CODE=$(sudo SERVER={analytics_server} IMAGE_NAME={image_under_test} GITURL={git-url} GITSHA={git-sha} atomic scan --verbose --scanner=analytics-integration --scan_type=report {image_under_test}|grep api_status_code|cut -f2 -d ":"|cut -c2-4)
+                STATUS_CODE=$(sudo SERVER={analytics_server} IMAGE_NAME={image_under_test} GITURL={git_url} GITSHA={git_sha} atomic scan --verbose --scanner=analytics-integration --scan_type=report {image_under_test}|grep api_status_code|cut -f2 -d ":"|cut -c2-4)
                 if [ "$STATUS_CODE" == "200" ]; then
                     echo "Success"
                     gemini_report=True
                     touch do_not_poll
-                    python send_scan_data_to_tube.py {image_under_test} {analytics_server} {git-url} {git-sha} $gemini_report
+                    python send_scan_data_to_tube.py {image_under_test} {analytics_server} {git_url} {git_sha} $gemini_report
                 else
                     echo "Status code from Gemini API is $STATUS_CODE"
-	            fi
+                fi
             else
-	            gemini_report=False
+                gemini_report=False
                 echo "Gemini server polling timed out"
             fi
             COUNTER=$((COUNTER+1))

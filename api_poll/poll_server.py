@@ -36,10 +36,10 @@ def poll_server(template_location):
     image_under_test = job.get("image_under_test")
     project["image_under_test"] = image_under_test
     project["analytics_server"] = job.get("analytics_server")
-    project["git-sha"] = job.get("git-sha")
-    project["git-url"] = job.get("git-url")
+    project["git_sha"] = job.get("git-sha")
+    project["git_url"] = job.get("git-url")
     project[
-        "api-server-poll-job-name"] = image_under_test.replace(
+        "api_server_poll_job_name"] = image_under_test.replace(
             "/", "-").replace(".", "-").replace(":", "-")
 
     try:
