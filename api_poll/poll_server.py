@@ -15,9 +15,10 @@ from scanning.lib.queue import JobQueue
 from scanning.lib.log import load_logger
 
 load_logger()
+logger = logging.getLogger('poll-job')
 queue = JobQueue(host=settings.BEANSTALKD_HOST,
             port=settings.BEANSTALKD_PORT,
-            sub="poll_server", pub="poll_failed",logger=logging.getLogger('poll-job'))
+            sub="poll_server", pub="poll_failed",logger=logger)
 
 job = None
 job_obj = None
@@ -26,8 +27,9 @@ job_details = None
 try:
     job_obj = queue.get()
     job=json.loads(job_obj.body)
+    logger.info("Got job: %s"%str(job))
 except Exception as e:
-    print("Could not retrieve job details:%s " %str(e))
+    logger.warning("Could not retrieve job details:%s " %str(e))
 
 project["image_under_test"] = job.get("image_under_test")
 project["analytics_server"] = job.get("analytics_server")
@@ -39,9 +41,9 @@ try:
          './'), trim_blocks=True, lstrip_blocks=True)
     template = env.get_template("api-poll-server.yml")
     job_details = template.render(project)
-    print job_details
+    logger.info("Template is rendered with project: %s" %str(project))
 except Exception as e:
-    print("Error template is not updated: %s" % str(e))
+    logger.critical("Error template is not updated: %s" % str(e))
 
 try:
     generated_filename = "poll_server_generated.yaml"
@@ -49,7 +51,7 @@ try:
         outfile.write(job_details)
         outfile.flush()
 except Exception as e:
-    print("Error job_details could not be updated %s" % str(e))
+    logger.critical("Error job_details could not be updated %s" % str(e))
 
 if job:
     queue.delete(job)
