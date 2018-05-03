@@ -20,6 +20,7 @@ queue = JobQueue(host=settings.BEANSTALKD_HOST,
 job = None
 job_obj = None
 project = {}
+job_details = None
 try:
     job_obj = queue.get()
     job=json.loads(job_obj.body)
@@ -36,6 +37,7 @@ try:
          './'), trim_blocks=True, lstrip_blocks=True)
     template = env.get_template("api-poll-server.yml")
     job_details = template.render(project)
+    print job_details
 except Exception as e:
     print("Error template is not updated: %s" % str(e))
 
@@ -48,4 +50,4 @@ except Exception as e:
     print("Error job_details could not be updated %s" % str(e))
 
 if job:
-    self.queue.delete(job)
+    queue.delete(job)
