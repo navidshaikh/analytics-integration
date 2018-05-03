@@ -11,24 +11,17 @@ from jinja2 import Environment, FileSystemLoader
 
 from scanning.vendors import beanstalkc
 from scanning.lib import settings
+from scanning.lib.queue import JobQueue
 
-conn = beanstalkc.Connection(
-    host=settings.BEANSTALKD_HOST,
-    port=settings.BEANSTALKD_PORT)
+queue = JobQueue(host=settings.BEANSTALKD_HOST,
+            port=settings.BEANSTALKD_PORT,
+            sub="poll_server", pub="poll_failed")
 
-conn.watch("poll_server")
-
-job=None
-
+job = None
 try:
-    if conn.stats_tube("poll_server")['current-jobs-ready'] > 0 :
-        job = conn.reserve()
-    else:
-        print(" No job in tube")
-        sys.exit(0)
+    job=json.loads(queue.get())
 except Exception as e:
-    print("Could not retrieve job details")
-    sys.exit(1)
+    print("Could not retrieve job details:%s " %str(e))
 
 project["image_under_test"] = job.get("image_under_test")
 project["analytics_server"] = job.get("analytics_server")
@@ -51,3 +44,5 @@ try:
 except Exception as e:
     print("Error job_details could not be updated %s" % str(e))
 
+if job:
+    self.queue.delete(job)
