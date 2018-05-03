@@ -18,8 +18,10 @@ queue = JobQueue(host=settings.BEANSTALKD_HOST,
             sub="poll_server", pub="poll_failed")
 
 job = None
+job_obj = None
 try:
-    job=json.loads(queue.get())
+    job_obj = queue.get()
+    job=json.loads(job_obj.body)
 except Exception as e:
     print("Could not retrieve job details:%s " %str(e))
 
