@@ -23,7 +23,7 @@
 
             echo "This is $COUNTER no run"
 
-            if [ $COUNTER -lt 24 && ![ -f do_not_poll ] ]; then
+            if [ $COUNTER -lt 24 ] && [ ! -f do_not_poll ]; then
                 sudo docker tag registry.access.redhat.com/rhel7:latest {image_under_test}
                 STATUS_CODE=$(sudo SERVER={analytics_server} IMAGE_NAME={image_under_test} GITURL={git_url} GITSHA={git_sha} atomic scan --verbose --scanner=analytics-integration --scan_type=report {image_under_test}|grep api_status_code|cut -f2 -d ":"|cut -c2-4)
                 if [ "$STATUS_CODE" == "200" ]; then
@@ -40,3 +40,4 @@
             fi
             COUNTER=$((COUNTER+1))
             rm -rf counter.txt
+            echo $COUNTER > counter.txt
