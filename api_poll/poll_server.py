@@ -19,7 +19,7 @@ queue = JobQueue(host=settings.BEANSTALKD_HOST,
 
 job = None
 job_obj = None
-project = []
+project = {}
 try:
     job_obj = queue.get()
     job=json.loads(job_obj.body)
