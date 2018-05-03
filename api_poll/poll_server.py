@@ -9,47 +9,45 @@ import logging
 import yaml
 from jinja2 import Environment, FileSystemLoader
 
-from base import BaseWorker
+from scanning.vendors import beanstalkc
+from scanning.lib import settings
 
+conn = beanstalkc.Connection(
+    host=settings.BEANSTALKD_HOST,
+    port=settings.BEANSTALKD_PORT)
 
-class PollServer(BaseWorker):
-    """Scan Base worker."""
-    NAME = 'Scanner worker'
+conn.watch("poll_server")
 
-    def __init__(self, logger=None, sub=None, pub=None):
-        super(ScanWorker, self).__init__(logger=logger, sub=sub, pub=pub)
+job=None
 
-    def handle_job(self, job):
-        """
-        Handle jobs in scan tube.
+try:
+    if conn.stats_tube("poll_server")['current-jobs-ready'] > 0 :
+        job = conn.reserve()
+    else:
+        print(" No job in tube")
+        exit 0
+except Exception as e:
+    print("Could not retrieve job details")
+    exit 1
 
-        This scans the images for the job requests in start_scan tube.
-        this calls the ScannerRunner for performing the scan work
-        """
-        self.job = job
-        project["image_under_test"] = job.get("image_under_test")
-        project["analytics_server"] = job.get("analytics_server")
-        project["git-sha"] = job.get("git-sha")
-        project["git-url"] = job.get("git-url")
+project["image_under_test"] = job.get("image_under_test")
+project["analytics_server"] = job.get("analytics_server")
+project["git-sha"] = job.get("git-sha")
+project["git-url"] = job.get("git-url")
 
-        try:
-            env = Environment(loader=FileSystemLoader(
-                './'), trim_blocks=True, lstrip_blocks=True)
-            template = env.get_template("api-poll-server.yml")
-            job_details = template.render(project)
-        except Exception as e:
-            print("Error template is not updated: %s" % str(e))
+try:
+    env = Environment(loader=FileSystemLoader(
+         './'), trim_blocks=True, lstrip_blocks=True)
+    template = env.get_template("api-poll-server.yml")
+    job_details = template.render(project)
+except Exception as e:
+    print("Error template is not updated: %s" % str(e))
 
-        try:
-             generated_filename = "poll_server_generated.yaml"
-             with open(generated_filename, 'w') as outfile:
-                 outfile.write(job_details)
-                 outfile.flush()
-        except Exception as e:
-            print("Error job_details could not be updated %s" % str(e))
+try:
+    generated_filename = "poll_server_generated.yaml"
+    with open(generated_filename, 'w') as outfile:
+        outfile.write(job_details)
+        outfile.flush()
+except Exception as e:
+    print("Error job_details could not be updated %s" % str(e))
 
-if __name__ == '__main__':
-
-    log.load_logger()
-    logger = logging.getLogger("poll-server")
-    PollServer(logger, sub='poll_server', pub='failed_polling').run()
