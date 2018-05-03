@@ -40,7 +40,7 @@ def poll_server(template_location):
     project["git-url"] = job.get("git-url")
     project[
         "api-server-poll-job-name"] = image_under_test.replace(
-            "/", "-").replace(".", "-")
+            "/", "-").replace(".", "-").replace(":", "-")
 
     try:
         env = Environment(loader=FileSystemLoader(
