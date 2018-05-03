@@ -10,7 +10,7 @@ from scanning.vendors import beanstalkc
 
 
 def send_scan_data(analytics_server, image_under_test, git_url,
-                   git_sha, gemini_report):
+                   git_sha, logs_dir, gemini_report):
     load_logger()
     logger = logging.getLogger('poll-job')
     conn = beanstalkc.Connection(
@@ -27,13 +27,13 @@ def send_scan_data(analytics_server, image_under_test, git_url,
     scan_details["git-sha"] = git_sha
     scan_details["gemini_report"] = gemini_report
     scan_details["notify_email"] = settings.NOTIFY_EMAILS
+    scan_details["logs_dir"] = logs_dir
 
     logger.info("Pushing scan details to the tube")
-    bs = beanstalkc.Connection(host="localhost")
-    bs.use("master_tube")
-    bs.put(json.dumps(scan_details))
+    conn.use("master_tube")
+    conn.put(json.dumps(scan_details))
     print("scan details are pushed to master tube")
 
 if __name__ == '__main__':
     send_scan_data(sys.argv[1], sys.argv[2], sys.argv[
-                   3], sys.argv[4], sys.argv[5])
+                   3], sys.argv[4], sys.argv[5], sys.argv[6])

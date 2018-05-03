@@ -7,6 +7,7 @@
             analytics_server: {{ analytics_server }}
             git_url: {{ git_url }}
             git_sha: {{ git_sha }}
+            logs_dir: {{ logs_dir }}
 
 - job-template:
     name: {{ api_server_poll_job_name }}
@@ -14,6 +15,7 @@
         Managed by Jenkins Job Builder, do not edit manually!
     builders:
         - shell: |
+            export PYTHONPATH=$PYTHONPATH:/opt/scanning
             COUNTER=0
             if [ -f counter.txt ]; then
               COUNTER=$(cat counter.txt)
@@ -23,16 +25,20 @@
 
             echo "This is $COUNTER no run"
 
-            if [ $COUNTER -lt 24 ] && [ ! -f do_not_poll ]; then
-                sudo docker tag registry.access.redhat.com/rhel7:latest {image_under_test}
-                STATUS_CODE=$(sudo SERVER={analytics_server} IMAGE_NAME={image_under_test} GITURL={git_url} GITSHA={git_sha} atomic scan --verbose --scanner=analytics-integration --scan_type=report {image_under_test}|grep api_status_code|cut -f2 -d ":"|cut -c2-4)
-                if [ "$STATUS_CODE" == "200" ]; then
-                    echo "Success"
-                    gemini_report=True
-                    touch do_not_poll
-                    python send_scan_data_to_tube.py {image_under_test} {analytics_server} {git_url} {git_sha} $gemini_report
+            if [ $COUNTER -lt 24 ]; then
+                if [ ! -f do_not_poll ]; then
+                  sudo docker tag registry.access.redhat.com/rhel7:latest {image_under_test}
+                  STATUS_CODE=$(sudo SERVER={analytics_server} IMAGE_NAME={image_under_test} GITURL={git_url} GITSHA={git_sha} atomic scan --verbose --scanner=analytics-integration --scan_type=report {image_under_test}|grep api_status_code|cut -f2 -d ":"|cut -c2-4)
+                  if [ "$STATUS_CODE" == "200" ]; then
+                      echo "Success"
+                      gemini_report=True
+                      touch do_not_poll
+                      python /opt/scanning/api_poll/send_scan_data_to_tube.py  {analytics_server} {image_under_test} {git_url} {git_sha} {logs_dir} $gemini_report
+                  else
+                      echo "Status code from Gemini API is $STATUS_CODE"
+                  fi
                 else
-                    echo "Status code from Gemini API is $STATUS_CODE"
+                    echo "Success report scan has been requested for this"
                 fi
             else
                 gemini_report=False
