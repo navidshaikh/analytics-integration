@@ -14,6 +14,7 @@ from scanning.lib import settings
 from scanning.lib.queue import JobQueue
 from scanning.lib.log import load_logger
 
+load_logger()
 queue = JobQueue(host=settings.BEANSTALKD_HOST,
             port=settings.BEANSTALKD_PORT,
             sub="poll_server", pub="poll_failed",logger=logging.getLogger('poll-job'))
