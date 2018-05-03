@@ -62,5 +62,11 @@ LOGGING = dict(
             "handlers": ["console", "log_to_file"],
 
         },
+        'poll-job': {
+            "level": "DEBUG",
+            "propagate": False,
+            "handlers": ["console", "log_to_file"],
+
+        },
     }
 )
