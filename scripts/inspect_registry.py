@@ -16,6 +16,9 @@ import requests
 
 # catalog API
 CATALOG = "{}/v2/_catalog"
+USERNAME = "container-apps"
+PASSWD = open("regpasswd.txt").read().strip()
+AUTH = (USERNAME, PASSWD)
 
 
 class InspectRegistry(object):
@@ -47,7 +50,10 @@ class InspectRegistry(object):
         returns json loaded reposnse and headers
         """
         try:
-            r = requests.get(url, params=params)
+            r = requests.get(url,
+                             params=params,
+                             auth=AUTH
+                             )
         except requests.exceptions.RequestException as e:
             self.logger.critical(
                 "Failed to process URL: {} with params: {}".format(
