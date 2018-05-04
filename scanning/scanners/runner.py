@@ -5,19 +5,19 @@ Scanner Runner.
 This module invokes all registered scanners and orchestrates the processing.
 """
 
-import docker
 import json
 import logging
 import os
 
+import docker
 from scanning.lib import settings
 from scanning.lib.log import load_logger
+from scanning.scanners.analytics_integration import AnalyticsIntegration
+from scanning.scanners.base import Scanner
 from scanning.scanners.container_capabilities import ContainerCapabilities
 from scanning.scanners.misc_package_updates import MiscPackageUpdates
 from scanning.scanners.pipeline_scanner import PipelineScanner
 from scanning.scanners.rpm_verify import ScannerRPMVerify
-from scanning.scanners.analytics_integration import AnalyticsIntegration
-from scanning.scanners.base import Scanner
 
 
 class ScannerRunner(Scanner):
@@ -50,7 +50,8 @@ class ScannerRunner(Scanner):
         returns Docker client object on success else False on failure
         """
         try:
-            conn = docker.Client(base_url="tcp://{}:{}".format(host, port))
+            conn = docker.DockerClient(
+                base_url="tcp://{}:{}".format(host, port))
         except Exception as e:
             self.logger.fatal(
                 "Failed to connect to Docker daemon. {}".format(e),

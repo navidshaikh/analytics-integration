@@ -39,6 +39,7 @@
                   else
                       echo "Status code from Gemini API is $STATUS_CODE"
                   fi
+                  sudo docker rmi {image_under_test}
                 else
                     echo "Success report scan has been requested for this"
                 fi
