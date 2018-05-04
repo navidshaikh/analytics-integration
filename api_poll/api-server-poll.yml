@@ -13,6 +13,8 @@
     name: {{ api_server_poll_job_name }}
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
+    triggers:
+      - timed: "H * * * *"
     builders:
         - shell: |
             export PYTHONPATH=$PYTHONPATH:/opt/scanning
