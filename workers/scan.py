@@ -34,7 +34,10 @@ class ScanWorker(BaseWorker):
             self.logger.warning(
                 "Failed to run scanners on image under test, moving on!")
             self.logger.warning("Job data %s", str(self.job))
-
+            self.logger.warning("Not sending job to poll_server tube.")
+            # run the image and volume cleanup
+            self.clean_up()
+            return
         else:
             self.logger.debug(str(scanners_data))
 
@@ -44,27 +47,28 @@ class ScanWorker(BaseWorker):
         scanners_data.pop("logs", None)
         scanners_data.pop("scan_results", None)
 
+        self.logger.info("Putting job for polling at poll_server tube.")
+        # copy the job to another variable to avoid "action" overriding
+        poll_job = self.job.copy()
+        # now put job for polling
+        self.put_job_for_polling(poll_job)
+
         # if weekly scan, push the job for notification
-        if self.job.get("weekly"):
-            scanners_data["action"] = "notify"
-            self.queue.put(json.dumps(scanners_data), 'master_tube')
-            self.logger.debug(
-                str.format(
-                    "Weekly scan for {project} is complete.",
-                    project=self.job.get("namespace")
-                )
-            )
-        else:
-            # now scanning is complete, relay job for delivery
-            # all other details about job stays same
-            # change the action
-            scanners_data["action"] = "notify"
-            # Put the job details on central tube
-            self.queue.put(json.dumps(scanners_data), 'master_tube')
-            self.logger.debug("Put job for delivery on master tube")
+        scanners_data["action"] = "notify"
+        self.queue.put(json.dumps(scanners_data), 'master_tube')
+        self.logger.debug("Weekly scan for {} is complete.".format(
+            self.job.get("image_under_test", "container")))
 
         # run the image and volume cleanup
         self.clean_up()
+
+    def put_job_for_polling(self, job):
+        """
+        Put job on polling tube
+        """
+        poll_tube = "poll_server"
+        self.queue.put(json.dumps(job), tube=poll_tube)
+        self.logger.info("Queued job at {} tube.".format(poll_tube))
 
     def clean_up(self):
         """
