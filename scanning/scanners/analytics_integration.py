@@ -54,18 +54,10 @@ class AnalyticsIntegration(Scanner):
         data = {}
         data["scanner"] = self.scanner
         data["image_under_test"] = self.image
-        data["msg"] = ""
-        # if status of execution is False
-        if not json_data.get("status", False):
-            data["msg"] = "Failed to run the scanner."
-            data["logs"] = {}
-            return data
+        data["msg"] = "Check the detailed report for more info."
+
         # there are logs inside logs
         logs = json_data.get("logs", {})
-        if not logs:
-            data["msg"] = "Failed to run the scanner."
-        else:
-            data["msg"] = logs.get("Scan Results", {}).get(
-                "summary", "Failed to run the scanner")
         data["logs"] = logs
+
         return data
