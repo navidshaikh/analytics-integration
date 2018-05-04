@@ -99,8 +99,13 @@ class NotifyUser(object):
 
     def compose_email_subject(self):
         " Composes email subject "
+        repo_parts = self.split_repo_name(self.image_under_test)
+        image = repo_parts.get("image", "")
+        image = image.replace("osio-prod/", "")
+        if not image:
+            image = self.image_under_test
 
-        return SUBJECT.format(self.image_under_test)
+        return SUBJECT.format(image)
 
     def compose_scanners_summary(self):
         "Composes scanners result summary"
@@ -122,8 +127,13 @@ class NotifyUser(object):
 
     def compose_email_contents(self):
         "Aggregates contents from different modules and composes one email"
+        repo_parts = self.split_repo_name(self.image_under_test)
+        image = repo_parts.get("image", "")
+        image = image.replace("osio-prod/", "")
+        if not image:
+            image = self.image_under_test
 
-        text = EMAIL_HEADER.format(self.image_under_test)
+        text = EMAIL_HEADER.format(image)
         # new line and separate section with hyphens
         text += "\n" + self._separate_section()
 
@@ -157,6 +167,56 @@ class NotifyUser(object):
             except OSError as e:
                 logger.info("Failed to remove file: %s , error: %s" %
                             (each, str(e)))
+
+    def split_repo_name(self, repo_name):
+        """
+        Split given repository names
+        """
+        if not repo_name:
+            return {}
+
+        parts = repo_name.split("/")
+
+        if len(parts) == 1:
+            # case for foo:latest
+            registry = None
+            image = repo_name
+        elif len(parts) == 2:
+            # check if part[0] is a registry
+            if "." in parts[0] or ":" in parts[0]:
+                # case for r.c.o/foo:latest
+                registry = parts[0]
+                image = parts[1]
+            else:
+                # case for foo/bar:latest
+                registry = None
+                image = repo_name
+
+        # for cases where len(parts) > 2
+        else:
+            # check if part[0] is a registry
+            if "." in parts[0] or ":" in parts[0]:
+                # case for r.c.o/foo/bar:latest
+                registry = parts[0]
+                image = "/".join(parts[1:])
+            else:
+                # case for prod/foo/bar:latest
+                registry = None
+                image = repo_name
+
+        # now process tags
+        image_parts = image.split(":")
+        if len(image_parts) == 2:
+            # case for foo:tag1, foo/bar:tag1, prod/foo/bar:latest
+            image_name = image_parts[0]
+            tag = image_parts[1]
+        else:
+            # cases for foo , foo/bar, prod/foo/bar
+            image_name = image
+            # use default tag
+            tag = "latest"
+        return {"registry": registry, "image": image,
+                "image_name": image_name, "tag": tag}
 
 
 while True:
