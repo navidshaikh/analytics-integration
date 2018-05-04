@@ -9,6 +9,7 @@ do
 done
 
 IMAGE=$1
+IMAGE=$(echo $IMAGE|sed -e "s/\/osio-prod\//\//g")
 NAME_SPACE=$(echo $IMAGE|cut -f2 -d "/")
 APP_NAME=$(echo $IMAGE|cut -f3 -d "/"|cut -f1 -d ":")
 TAG=$(echo $IMAGE|cut -f3 -d "/"|cut -f2 -d ":")
