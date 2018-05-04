@@ -17,7 +17,7 @@ import requests
 # catalog API
 CATALOG = "{}/v2/_catalog"
 USERNAME = "container-apps"
-PASSWD = open("regpasswd.txt").read().strip()
+PASSWD = open("/opt/scanning/scripts/regpasswd.txt").read().strip()
 AUTH = (USERNAME, PASSWD)
 
 
