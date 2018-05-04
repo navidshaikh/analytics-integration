@@ -17,7 +17,7 @@ bs = beanstalkc.Connection(host="0.0.0.0")
 bs.watch("notify")
 
 SCANNERS_STATUS = "scanners_status.json"
-SUBJECT = "Atomic Scanner report for {}"
+SUBJECT = "[osio-scan] Report for {}"
 EMAIL_HEADER = "Atomic scanners report for image: {}"
 
 
