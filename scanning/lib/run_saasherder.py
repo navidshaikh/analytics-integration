@@ -30,7 +30,6 @@ def run_saasherder(repository):
     cmd = "cd {} && {} {}".format(
         SAASHERDER_PARSER_DIR, GET_REPO_SCRIPT, repository)
     logger = logging.getLogger("weeklyscan")
-    logger.info("Checking repo: {} via saasherder".format(repository))
     try:
         output = run_cmd(cmd, shell=True)
     except subprocess.CalledProcessError as e:

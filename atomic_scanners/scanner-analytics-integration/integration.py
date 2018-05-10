@@ -106,7 +106,7 @@ def post_request(endpoint, api, data):
         if r.status_code == requests.codes.ok:
             return True, json.loads(r.text), r.status_code
         else:
-            return False, "Returned {} status code for {}.".format(
+            return False, "Returned {} status code for {}".format(
                 r.status_code, url), r.status_code
 
 
@@ -140,8 +140,10 @@ def get_request(endpoint, api, data):
         if r.status_code == requests.codes.ok:
             return True, json.loads(r.text), r.status_code
         else:
-            return False, "Returned {} status code for {}.".format(
-                r.status_code, url), r.status_code
+            msg = "Returned {} status code for {}. {}".format(
+                r.status_code, url, r.json().get(
+                    "summary", "no summary returned from server."))
+            return False, msg, r.status_code
 
 
 class AnalyticsIntegration(object):

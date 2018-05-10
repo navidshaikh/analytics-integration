@@ -8,6 +8,7 @@ This module invokes all registered scanners and orchestrates the processing.
 import json
 import logging
 import os
+import sys
 
 import docker
 from scanning.lib import settings
@@ -34,6 +35,9 @@ class ScannerRunner(Scanner):
         load_logger()
         self.logger = logging.getLogger('scan-worker')
         self.docker_conn = self.docker_client()
+        if not self.docker_conn:
+            self.logger.fatal("Not able to connect to docker daemon.")
+            sys.exit(1)
         self.job = job
 
         # register all scanners
@@ -45,13 +49,12 @@ class ScannerRunner(Scanner):
             ContainerCapabilities
         ]
 
-    def docker_client(self, host="127.0.0.1", port="4243"):
+    def docker_client(self, base_url="unix:///var/run/docker.sock"):
         """
         returns Docker client object on success else False on failure
         """
         try:
-            conn = docker.DockerClient(
-                base_url="tcp://{}:{}".format(host, port))
+            conn = docker.Client(base_url=base_url)
         except Exception as e:
             self.logger.fatal(
                 "Failed to connect to Docker daemon. {}".format(e),
