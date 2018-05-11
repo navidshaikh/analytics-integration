@@ -22,7 +22,7 @@ do
   if [ $? == 0 ]
   then
     GIT_HASH=$(saasherder --context $CURRENT_CONTEXT get hash $APP_NAME)
-    TAG_LENGTH=$(saasherder --context $CURRENT_CONTEXT get has_length $APP_NAME)
+    TAG_LENGTH=$(saasherder --context $CURRENT_CONTEXT get hash_length $APP_NAME)
     IMAGE_TAG=$(echo $GIT_HASH|cut -c1-$TAG_LENGTH)
     echo "git-url=$GIT_URL"
     echo "git-sha=$GIT_HASH"
@@ -33,6 +33,7 @@ do
     echo "GIT_URL not found for $APP_NAME in $CURRENT_CONTEXT, checking next!"
     cd ../
     continue
+fi
 done
 
 echo "$NAME_SPACE/$APP_NAME not found via saasherder."
