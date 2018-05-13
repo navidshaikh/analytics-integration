@@ -170,6 +170,7 @@ class ScannerRunner(Scanner):
         scanners_data = {}
         scanners_data["msg"] = {}
         scanners_data["logs_file_path"] = {}
+        scanners_data["alert"] = {}
 
         # run the multiple scanners on image under test
         for scanner in self.scanners:
