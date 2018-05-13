@@ -165,7 +165,7 @@ class NotifyUser(object):
         Main method to orchestrate the email body composition
         and sending email
         """
-        self.problem = self.is_problem_in_reports(self)
+        self.problem = self.is_problem_in_reports()
         subject = self.compose_email_subject()
         email_contents = self.compose_email_contents()
         attachments = self.get_attachments()
