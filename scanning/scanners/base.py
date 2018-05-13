@@ -235,6 +235,7 @@ class Scanner(object):
             "scanner": self.scanner,
             "msg": msg,
             "logs": logs,
+            "alert": False
         }
 
     def scan(self, scan_type=None,

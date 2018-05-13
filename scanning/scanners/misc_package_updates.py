@@ -60,6 +60,7 @@ class MiscPackageUpdates(Scanner):
         data["image_under_test"] = self.image
         data["scanner"] = self.scanner
         data["logs"] = logs
+        data["alert"] = False
         # if not logs found, write proper msg and return
         if not logs:
             data["msg"] = "Failed to run the scanner."
