@@ -62,7 +62,8 @@ class AnalyticsIntegration(Scanner):
         data["alert"] = False
 
         if scan_type == "register":
-            data["msg"] = "Check the detailed report for more info."
+            data["msg"] = ("Registered container for scanning at server."
+                    " Report has registeration related info, no data."
         else:
             deps = logs.get("Scan Results", {}).get("dependencies", [])
             # if dependencies are not found
