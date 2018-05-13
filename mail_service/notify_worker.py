@@ -6,6 +6,8 @@ import os
 import subprocess
 
 import beanstalkc
+# importing config present at root of repository
+from config import ALERTS
 
 from scanning.lib.log import load_logger
 
@@ -17,7 +19,7 @@ bs = beanstalkc.Connection(host="0.0.0.0")
 bs.watch("notify")
 
 SCANNERS_STATUS = "scanners_status.json"
-SUBJECT = "[osio-scan] Report for {}"
+SUBJECT = "[osio-scan][{}] Report for {}"
 EMAIL_HEADER = "Atomic scanners report for image: {}"
 
 
@@ -25,6 +27,7 @@ class NotifyUser(object):
     "Compose and send build status, linter and scanners results"
 
     def __init__(self, job_info):
+        self.alerts = ALERTS
 
         self.send_mail_command = \
             "/opt/scanning/mail_service/send_mail.sh"
@@ -104,8 +107,10 @@ class NotifyUser(object):
         image = image.replace("osio-prod/", "")
         if not image:
             image = self.image_under_test
-
-        return SUBJECT.format(image)
+        if self.problem:
+            return SUBJECT.format("problem", image)
+        else:
+            return SUBJECT.format("ok", image)
 
     def compose_scanners_summary(self):
         "Composes scanners result summary"
@@ -145,18 +150,33 @@ class NotifyUser(object):
             ["-a {}".format(a) for a in
              self.scanners_status["logs_file_path"].values()])
 
+    def is_problem_in_reports(self):
+        """
+        Go through scanners status file and find out if there are problems
+        """
+        for scanner, alert in self.scanners_status.get(
+                "alert", {}).iteritems():
+            if alert:
+                return True
+        return False
+
     def notify_user(self):
         """
         Main method to orchestrate the email body composition
         and sending email
         """
+        self.problem = self.is_problem_in_reports(self)
         subject = self.compose_email_subject()
         email_contents = self.compose_email_contents()
         attachments = self.get_attachments()
         # send email
         logger.info("Sending email to user %s" %
                     self.job_info["notify_email"])
-        self.send_email(subject, email_contents, attachments)
+
+        if "ok" in self.alerts:
+            self.send_email(subject, email_contents, attachments)
+        if "probelm" in self.alerts and self.problem:
+            self.send_email(subject, email_contents, attachments)
 
     def remove_status_files(self, status_files):
         "Removes the status file"
