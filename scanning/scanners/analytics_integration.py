@@ -39,9 +39,9 @@ class AnalyticsIntegration(Scanner):
         # invoke base class's cleanup utility
         self.cleanup()
 
-        return self.process_output(data)
+        return self.process_output(data, scan_type)
 
-    def process_output(self, json_data):
+    def process_output(self, json_data, scan_type):
         """
         Genaralising output.
 
@@ -54,10 +54,36 @@ class AnalyticsIntegration(Scanner):
         data = {}
         data["scanner"] = self.scanner
         data["image_under_test"] = self.image
-        data["msg"] = "Check the detailed report for more info."
 
         # there are logs inside logs
         logs = json_data.get("logs", {})
         data["logs"] = logs
+        # default
+        data["alert"] = False
+
+        if scan_type == "register":
+            data["msg"] = "Check the detailed report for more info."
+        else:
+            deps = logs.get("Scan Results", {}).get("dependencies", [])
+            # if dependencies are not found
+            if not deps:
+                data["msg"] = "Check the detailed report for more info."
+            else:
+                msg = ""
+                # iterate through all dependencies found
+                for each in deps:
+                    # if cve count, log the issue in msg
+                    if each.get("cve_count", 0) > 0:
+                        data["alert"] = True
+                        for k, v in each.iteritems():
+                            msg = msg + "{}: {}+ \n".format(str(k), str(v))
+
+                # if no cves found
+                if not data["alert"]:
+                    data["msg"] = "No CVEs found in image under test."
+                # else, if cves found
+                else:
+                    # store the processed msg
+                    data["msg"] = msg
 
         return data
