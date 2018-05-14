@@ -10,14 +10,14 @@
   become: true
   tags: jenkins
 
-- name: Configure jenkins requirements
+- name: Configure jenkins yum repository
   shell: |
       wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
       rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
   become: true
   tags: jenkins
 
-- name: Install jenkins, java, jenkins-jjb
+- name: Install jenkins, java
   yum: name={{ item }} state=present
   with_items:
     - java
@@ -25,16 +25,10 @@
   become: true
   tags: jenkins
 
-- name: Restart Jenkins
+- name: Restart and enable jenkins service
   systemd: name=jenkins state=restarted enabled=yes
   become: true
   tags: jenkins
-
-- name: Enable jenkins
-  shell: chkconfig jenkins on
-  become: true
-  tags: jenkins
-
 
 - name: Install setup tools, jenkins-jjb
   shell: |
