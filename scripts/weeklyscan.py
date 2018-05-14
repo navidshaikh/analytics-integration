@@ -84,6 +84,11 @@ class WeeklyScan(object):
                 if len(parts) != 3:
                     self.logger.warning("Incomplete info for {}".format(parts))
                     continue
+
+                # filter containers which are on r.c.o
+                if parts[2].startswith("registry.centos.org"):
+                    continue
+
                 images.append(parts)
         except Exception as e:
             self.logger.critical(
