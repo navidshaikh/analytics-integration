@@ -34,6 +34,13 @@
   tags:
     - saasherder
 
+- name: Configure Jenkins
+  hosts: scanner
+  roles:
+    - api_poll
+  tags:
+    - api_poll
+
 - name: Configure Weekly scan
   hosts: scanner
   roles:
