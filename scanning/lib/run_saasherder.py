@@ -14,7 +14,7 @@ from command import run_cmd
 SAASHERDER_PARSER_DIR = \
     "/opt/scanning/saasherder_parser/"
 
-GET_IMAGES_SCRIPT = "get_images.sh"
+GET_IMAGES_SCRIPT = "get-images.sh"
 IMAGES_FILE = "/opt/scanning/saasherder_parser/images.txt"
 
 
