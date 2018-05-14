@@ -170,6 +170,7 @@ class ScannerRunner(Scanner):
         scanners_data = {}
         scanners_data["msg"] = {}
         scanners_data["logs_file_path"] = {}
+        scanners_data["alert"] = {}
 
         # run the multiple scanners on image under test
         for scanner in self.scanners:
@@ -198,6 +199,8 @@ class ScannerRunner(Scanner):
 
             # keep the message
             scanners_data["msg"][result["scanner"]] = result["msg"]
+            scanners_data["alert"][result["scanner"]] = result.get(
+                "alert", False)
 
             # pass the logs filepath via beanstalk tube
             # TODO: change the respective key from logs ==> logs_URL while
@@ -251,6 +254,7 @@ class ScannerRunner(Scanner):
         """
         scanners_data = {}
         scanners_data["msg"] = {}
+        scanners_data["alert"] = {}
         scanners_data["logs_file_path"] = {}
 
         # create the specific scanner object
@@ -276,6 +280,7 @@ class ScannerRunner(Scanner):
 
         # keep the message
         scanners_data["msg"][result["scanner"]] = result["msg"]
+        scanners_data["alert"][result["scanner"]] = result.get("alert", False)
 
         # pass the logs filepath via beanstalk tube
         # TODO: change the respective key from logs ==> logs_URL while
@@ -314,6 +319,7 @@ class ScannerRunner(Scanner):
         # as we are going to add logs and msg
         scanners_data = self.job
         scanners_data["msg"] = {}
+        scanners_data["alert"] = {}
         # scanners_data["logs_URL"] = {}
         scanners_data["logs_file_path"] = {}
 
