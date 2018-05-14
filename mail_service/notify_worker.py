@@ -19,7 +19,7 @@ bs = beanstalkc.Connection(host="0.0.0.0")
 bs.watch("notify")
 
 SCANNERS_STATUS = "scanners_status.json"
-SUBJECT = "[osio-scan][{}] Report for {}"
+SUBJECT = "[osio-scan]{}: Report for {}"
 EMAIL_HEADER = "Atomic scanners report for image: {}"
 
 
@@ -108,9 +108,9 @@ class NotifyUser(object):
         if not image:
             image = self.image_under_test
         if self.problem:
-            return SUBJECT.format("problem", image)
+            return SUBJECT.format("PROBLEM", image)
         else:
-            return SUBJECT.format("ok", image)
+            return SUBJECT.format("OK", image)
 
     def compose_scanners_summary(self):
         "Composes scanners result summary"
