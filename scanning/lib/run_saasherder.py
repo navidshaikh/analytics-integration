@@ -20,8 +20,10 @@ IMAGES_FILE = "/opt/scanning/saasherder_parser/images.txt"
 
 def run_saasherder():
     """
+    Runs saasherder via get-images.sh script and returns the filename
+    generated using script
     """
-    cmd = "cd {} & bash {}".format(SAASHERDER_PARSER_DIR, GET_IMAGES_SCRIPT)
+    cmd = "cd {} && bash {}".format(SAASHERDER_PARSER_DIR, GET_IMAGES_SCRIPT)
 
     logger = logging.getLogger("weeklyscan")
     try:
