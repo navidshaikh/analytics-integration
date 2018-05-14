@@ -1,0 +1,25 @@
+- job:
+    name: 'poll_service_job'
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    triggers:
+      - timed: "H/60 * * * *"
+    builders:
+        - shell: |
+            WORKSPACE=`pwd`
+            export PYTHONPATH=$PYTHONPATH:/opt/scanning
+            cd /opt/scanning/api_poll/
+            python poll_server.py $WORKSPACE
+            cd $WORKSPACE
+            jenkins-jobs --ignore-cache --conf ~/jenkins_jobs.ini update poll_server_generated.yaml
+
+- job:
+    name: 'weekly_rhel_scan'
+    description: |
+        Managed by Jenkins Job Builder, do not edit manually!
+    triggers:
+        - timed: "59 11 * * 6"
+    builders:
+        - shell: |
+            export PYTHONPATH=/opt/scanning
+            python /opt/scanning/scripts/weeklyscan.py
