@@ -3,3 +3,5 @@ localhost ansible_connection=local
 
 [all:vars]
 registry=registry.devshift.net
+jenkins_admin_username=admin_user
+jenkins_admin_password=admin_password
