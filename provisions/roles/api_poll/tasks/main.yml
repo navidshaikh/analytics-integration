@@ -54,3 +54,6 @@
   template: src=service_jobs.yaml.j2  dest= {{ ansible_env.HOME}}/poll_service.yaml
   become: true
   tags: jenkins
+
+- name: Push polling jobs to jenkins
+  shell: "jenkins-jobs --ignore-cache update {{ ansible_env.HOME}}/poll_service.yaml"
