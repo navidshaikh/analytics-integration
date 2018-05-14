@@ -6,7 +6,7 @@ OUT="${PWD}/images.txt"
 
 rm -f $OUT
 
-for saasrepo in "$@"; do
+for saasrepo in $(cat repo_list); do
     pushd "${saasrepo}"
 
     [ -z "$NO_REFRESH" ] && git pull
