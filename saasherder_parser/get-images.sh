@@ -2,7 +2,7 @@
 
 set -e
 
-OUT="${PWD}/images.txt"
+OUT="/opt/scanning/saasherder_parser/images.txt"
 
 rm -f $OUT
 
