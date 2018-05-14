@@ -27,7 +27,7 @@ for saasrepo in $(cat repo_list); do
             images=$(yq -r '.items | .[] | select(.kind=="DeploymentConfig").spec.template.spec.containers | .[] | .image ' $f)
 
             for i in $images; do
-                echo "${saasrepo};${context};${service};${git_url};${git_hash};${i}" | tee -a "$OUT"
+                echo "${git_url};${git_hash};${i}" | tee -a "$OUT"
             done
         done
     done
