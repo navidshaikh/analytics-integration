@@ -314,7 +314,7 @@ class ScannerRunner(Scanner):
 
         image = self.job.get("image_under_test")
 
-        self.logger.info("Image under test for scanning :{}".format(image))
+        self.logger.info("Image under test for scanning: {}".format(image))
         # copy the job info into scanners data,
         # as we are going to add logs and msg
         scanners_data = self.job

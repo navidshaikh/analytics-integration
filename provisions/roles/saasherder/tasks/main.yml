@@ -4,3 +4,18 @@
   args:
     creates: /opt/scanning/saasherder_parser/saasherder
     chdir: /opt/scanning/saasherder_parser/
+
+- name: Ensure EPEL repository is configured
+  become: true
+  yum: name=epel-release state=present
+
+- name: Install python-pip and jq RPM packages
+  become: true
+  yum: name={{ item }} state=latest
+  with_items:
+    - python2-pip
+    - jq
+
+- name: Install yq using pip
+  become: true
+  shell: pip install yq

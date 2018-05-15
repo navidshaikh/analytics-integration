@@ -16,7 +16,6 @@ from scanning.lib.queue import JobQueue
 from scanning.lib.log import load_logger
 from scanning.lib import settings
 from scanning.lib.run_saasherder import run_saasherder
-from inspect_registry import InspectRegistry
 
 
 class WeeklyScan(object):
@@ -27,30 +26,10 @@ class WeeklyScan(object):
     def __init__(self, sub=None, pub=None):
         # configure logger
         self.logger = logging.getLogger('weeklyscan')
-        self.registry = settings.REGISTRY
-        self.target_namespaces = settings.TARGET_NAMESPACES
-        self.ir = InspectRegistry(
-            self.registry,
-            settings.SECURE_REGISTRY,
-            self.logger
-        )
         # initialize beanstalkd queue connection for scan trigger
         self.queue = JobQueue(host=settings.BEANSTALKD_HOST,
                               port=settings.BEANSTALKD_PORT,
                               sub=sub, pub=pub, logger=self.logger)
-
-    def repos_in_registry(self):
-        """
-        Find repository names available in give registry
-        """
-        # find all available repositories (not images)
-        repos = self.ir.find_repos()
-        # subset repositories to ones that are required
-        repos = self.ir.subset_repos_on_namespace(
-            repos,
-            self.target_namespaces
-        )
-        return repos
 
     def random_string(self, size=3):
         """
@@ -76,37 +55,70 @@ class WeeklyScan(object):
         else:
             return dirname
 
-    def run(self):
+    def read_images(self, images_file):
         """
-        Finds repositories on given registry,
-        subset the repositories as per required/target repositories
-        finds out latest/deployed tag or container image in given repository
-        and put the job for given container images for scanning
+        Given a file, returns
+        [
+            [
+                $GITURL,
+                $GITSHA,
+                $IMAGE,
+            ],
+        [..]
+        ]
         """
-
-        self.logger.info("Starting weekly scan for containers in {}".format(
-            self.registry))
-        # lets get needed repos in given registry
-        repos = self.repos_in_registry()
-
-        if not repos:
+        try:
+            fin = open(images_file)
+        except Exception as e:
             self.logger.critical(
-                "No repos found in registry for {} namespace.".format(
-                    self.target_namespaces))
+                "Failed to read list of images from file {}. {}".format(
+                    images_file, str(e)))
             return None
 
-        for repo in repos:
-            self.logger.info("Checking repo: {} via saasherder".format(repo))
+        images = []
+        try:
+            all_lines = fin.read().strip()
+            lines = all_lines.split("\n")
+            for line in lines:
+                parts = line.strip().split(";")
+                if len(parts) != 3:
+                    self.logger.warning("Incomplete info for {}".format(parts))
+                    continue
 
-            # running saasherder
-            values = run_saasherder(repo)
-            # case where repo is not located by saasherder
-            if not values:
-                continue
+                # filter containers which are on r.c.o
+                if parts[2].startswith("registry.centos.org"):
+                    continue
 
-            self.logger.debug("Values found via saas herder {}".format(values))
-            # run_saasherder function ensures values has "image-tag"
-            image = self.registry + "/" + repo + ":" + values.get("image-tag")
+                images.append(parts)
+        except Exception as e:
+            self.logger.critical(
+                "Failed to parse images via {}.{}".format(images_file, str(e)))
+            return None
+
+        return images
+
+    def run(self):
+        """
+        Finds images on given registry using get-images.sh script,
+        and put the job for images for scanning
+        """
+        self.logger.info("Starting weekly scan..")
+
+        images_file = run_saasherder()
+        if not images_file:
+            self.logger.critical(
+                "No images found via saasherder/get_images.sh. "
+                "Aborting weekly scan.")
+            return None
+
+        images = self.read_images(images_file)
+        if not images:
+            self.logger.critical(
+                "No images found via saasherder/get_images.sh."
+                "Aborting weekly scan.")
+            return None
+
+        for image in images:
 
             # create logs dir
             resultdir = self.new_logs_dir()
@@ -116,14 +128,16 @@ class WeeklyScan(object):
                 if not resultdir:
                     self.logger.warning(
                         "Can't create result dir for repo {}."
-                        "Failed to run weekly scan for it.".format(repo))
+                        "Failed to run weekly scan for it.".format(image[2]))
                     continue
-            # now put image for scan
-            self.put_image_for_scanning(image, resultdir, values)
+
+            # image = [git-url, git-hash, image]
+            self.put_image_for_scanning(
+                image[2], resultdir, image[0], image[1])
             self.logger.info("Queued weekly scanning for {}.".format(image))
         return "Queued containers for weekly scan."
 
-    def put_image_for_scanning(self, image, logs_dir, values):
+    def put_image_for_scanning(self, image, logs_dir, giturl, gitsha):
         """
         Put the image for scanning on beanstalkd tube
         """
@@ -134,9 +148,11 @@ class WeeklyScan(object):
             "analytics_server": settings.ANALYTICS_SERVER,
             "notify_email": settings.NOTIFY_EMAILS,
             "logs_dir": logs_dir,
-            "git-url": values.get("git-url"),
-            "git-sha": values.get("git-sha")
+            "git-url": giturl,
+            "git-sha": gitsha,
         }
+        self.logger.info("Putting {} for scan..".format(image))
+        # now put image for scan
         self.queue.put(json.dumps(job))
 
 
