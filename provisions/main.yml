@@ -20,19 +20,26 @@
   tags:
     - scanners
 
-- name: Configure services of the scanning module
-  hosts: scanner
-  roles:
-    - services
-  tags:
-    - services
-
 - name: Configure saasherder on the scanning node
   hosts: scanner
   roles:
     - saasherder
   tags:
     - saasherder
+
+- name: Configure Jenkins
+  hosts: scanner
+  roles:
+    - api_poll
+  tags:
+    - api_poll
+
+- name: Configure services of the scanning module
+  hosts: scanner
+  roles:
+    - services
+  tags:
+    - services
 
 - name: Configure Weekly scan
   hosts: scanner

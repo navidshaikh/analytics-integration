@@ -1,0 +1,49 @@
+- name: Ensure EPEL is installed
+  yum: name=epel-release state=present
+  become: true
+
+- name: Install Wget, python-pip
+  yum: name={{ item }} state=present
+  with_items:
+    - wget
+    - python-pip
+  become: true
+
+- name: Configure jenkins yum repository
+  shell: |
+      wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+      rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
+  become: true
+
+- name: Install jenkins, java
+  yum: name={{ item }} state=present
+  with_items:
+    - java
+    - jenkins
+  become: true
+
+- name: Restart and enable jenkins service
+  systemd: name=jenkins state=restarted enabled=yes
+  become: true
+
+- name: Install setup tools, jenkins-jjb
+  shell: |
+      pip install --upgrade pip
+      pip install setup-tools
+      pip install jenkins-job-builder
+  become: true
+
+- name: Ensure JJB conf dir exists
+  file: dest=/etc/jenkins_jobs  state=directory
+  become: true
+
+- name: Copy JJB conf
+  template: src=jenkins_jobs.ini.j2 dest=/etc/jenkins_jobs/jenkins_jobs.ini
+
+- name: Copy polling job tempalte
+  template: src=service_jobs.yaml.j2  dest={{ ansible_env.HOME}}/service_jobs.yaml
+  become: true
+
+- name: Push polling jobs to jenkins
+  shell: "jenkins-jobs --ignore-cache update {{ ansible_env.HOME}}/service_jobs.yaml"
+  become: true
