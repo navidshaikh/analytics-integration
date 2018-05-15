@@ -26,12 +26,7 @@ def send_scan_data(analytics_server, image_under_test, git_url,
     scan_details["git-url"] = git_url
     scan_details["git-sha"] = git_sha
 
-    if(gemini_report == "True"){
-        scan_details["gemini_report"] = True
-    }
-    else{
-        scan_details["gemini_report"] = False
-    }
+    scan_details["gemini_report"]=True if (gemini_report == "True") else False
 
     scan_details["notify_email"] = settings.NOTIFY_EMAILS
     scan_details["logs_dir"] = logs_dir
