@@ -1,14 +1,9 @@
 ---
-- name: Copy cron script for weekly scan
-  template: src=weeklyscan.sh.j2 dest=/root/weeklyscan.sh mode=0755
+- name: Copy weekly scan job template
+  template: src=weekly_rhel_scan.yaml.j2 dest={{ ansible_env.HOME}}/weekly_rhel_scan.yaml
   become: true
   tags: weeklyscan
 
-- name: Configure cron job for weekly scan to run weekly
-  cron:
-    name: "Weekly (atomic) scanning cron job"
-    job: "/root/weeklyscan.sh"
-    special_time: weekly
-
+- name: Configure job for weekly scan in jenkins
+  shell: "jenkins-jobs --ignore-cache update {{ ansible_env.HOME}}/weekly_rhel_scan.yaml"
   become: true
-  tags: weeklyscan
