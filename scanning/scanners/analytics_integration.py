@@ -68,7 +68,7 @@ class AnalyticsIntegration(Scanner):
             deps = logs.get("Scan Results", {}).get("dependencies", [])
             # if dependencies are not found
             if not deps:
-                data["msg"] = "Check the detailed report for more info."
+                data["msg"] = "No dependencies found. Timed out."
             else:
                 msg = ""
                 # iterate through all dependencies found
