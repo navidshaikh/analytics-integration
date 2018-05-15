@@ -47,6 +47,8 @@
             else
                 gemini_report=False
                 echo "Gemini server polling timed out"
+                python /opt/scanning/api_poll/send_scan_data_to_tube.py  {analytics_server} {image_under_test} {git_url} {git_sha} {logs_dir} $gemini_report
+                jenkins-jobs --ignore-cache --conf ~/jenkins_jobs.ini delete  {api_server_poll_job_name}
             fi
             COUNTER=$((COUNTER+1))
             rm -rf counter.txt
