@@ -9,10 +9,11 @@
   become: true
   yum: name=epel-release state=present
 
-- name: Install python-pip and jq RPM packages
+- name: Install atomic-openshift-clients, python-pip and jq RPM packages
   become: true
   yum: name={{ item }} state=latest
   with_items:
+    - atomic-openshift-clients
     - python2-pip
     - jq
 
