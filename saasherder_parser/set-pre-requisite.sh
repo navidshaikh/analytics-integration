@@ -1,5 +1,5 @@
 #!/bin/bash
-yum install python-pip || exit 1
+yum install -y python-pip || exit 1
 pip install --upgrade pip || exit 1
 git clone https://github.com/openshiftio/saasherder
 cd saasherder
