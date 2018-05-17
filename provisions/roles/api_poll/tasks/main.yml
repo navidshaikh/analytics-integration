@@ -26,6 +26,10 @@
   systemd: name=jenkins state=restarted enabled=yes
   become: true
 
+- name: Wait for jenkins to come up
+  pause:
+      seconds: 50
+
 - name: Install setup tools, jenkins-jjb
   shell: |
       pip install --upgrade pip
