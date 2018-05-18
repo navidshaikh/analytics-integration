@@ -174,7 +174,7 @@ class NotifyUser(object):
 
         if "ok" in self.alerts:
             self.send_email(subject, email_contents, attachments)
-        if "probelm" in self.alerts and self.problem:
+        if "problem" in self.alerts and self.problem:
             self.send_email(subject, email_contents, attachments)
 
         logger.info("Sending email to user %s" %
