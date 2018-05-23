@@ -77,8 +77,11 @@ class AnalyticsIntegration(Scanner):
                     if each.get("cve_count", 0) > 0:
                         data["alert"] = True
                         for k, v in each.iteritems():
-                            msg = msg + "\n{}:\t\t{}+ \n".format(str(k), str(v))
-                    msg = msg + "\n"
+                            # convert array/list to string
+                            if type(v) == list:
+                                v = ", ".join(iter(v))
+                            msg = msg + "{}: {}+ \n".format(str(k), str(v))
+                        msg = msg + "\n"
 
                 # if no cves found
                 if not data["alert"]:
