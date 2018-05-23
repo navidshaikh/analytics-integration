@@ -79,6 +79,10 @@ class WeeklyScan(object):
         try:
             all_lines = fin.read().strip()
             lines = all_lines.split("\n")
+            # remove duplicate lines
+            lines = list(set(lines))
+            self.logger.info("About {} containers identified for scan.".format(
+                len(lines)))
             for line in lines:
                 parts = line.strip().split(";")
                 if len(parts) != 3:
