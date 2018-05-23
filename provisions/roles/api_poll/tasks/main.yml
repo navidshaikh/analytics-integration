@@ -30,6 +30,24 @@
   pause:
       seconds: 50
 
+- name: Make sure 'wheel' group exists
+  group:
+    name: wheel
+    state: present
+  become: true
+
+- name: Allow 'wheel' group to have passwordless sudo access
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+  become: true
+
+- name: Adds jenkins user to wheel group
+  user: name=jenkins groups=wheel append=yes state=present
+
 - name: Install setup tools, jenkins-jjb
   shell: |
       pip install --upgrade pip
@@ -43,11 +61,12 @@
 
 - name: Copy JJB conf
   template: src=jenkins_jobs.ini.j2 dest=/etc/jenkins_jobs/jenkins_jobs.ini
+  become: true
 
 - name: Copy polling job tempalte
   template: src=service_jobs.yaml.j2  dest={{ ansible_env.HOME}}/service_jobs.yaml
   become: true
 
 - name: Push polling jobs to jenkins
-  shell: "jenkins-jobs --ignore-cache update {{ ansible_env.HOME}}/service_jobs.yaml"
+  shell: jenkins-jobs --ignore-cache update {{ ansible_env.HOME}}/service_jobs.yaml
   become: true
