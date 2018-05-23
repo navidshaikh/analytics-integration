@@ -310,13 +310,12 @@ class ScannerRunner(Scanner):
         handle_gemini_report      handle_gemini_register  run_a_scanner
 
         """
-        self.logger.info("Received scanning job : {}".format(self.job))
-
         image = self.job.get("image_under_test")
 
         self.logger.info("Image under test for scanning: {}".format(image))
-        # copy the job info into scanners data,
+        # reference the job info into scanners_data,
         # as we are going to add logs and msg
+        # both refer to same object of job
         scanners_data = self.job
         scanners_data["msg"] = {}
         scanners_data["alert"] = {}
@@ -333,7 +332,8 @@ class ScannerRunner(Scanner):
         # case where this job is running after jenkins polling jobs
         # we need to run only one scanner; analytics-integration with
         # scan_type=report
-        if self.job.get("gemini_report"):
+        # `gemini_report` var must present in job to hint polling is done
+        if "gemini_report" in self.job:
             data = self.handle_post_polling_scan(image)
 
         # case where this job is running before jenkins polling jobs
@@ -363,6 +363,7 @@ class ScannerRunner(Scanner):
         # clean up the system post scan
         self.clean_up(image)
 
+        # the scanners_data returned itself will become job for notify_worker
         return True, scanners_data
 
     def clean_up(self, image):

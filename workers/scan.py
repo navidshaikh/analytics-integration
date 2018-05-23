@@ -26,40 +26,37 @@ class ScanWorker(BaseWorker):
         This scans the images for the job requests in start_scan tube.
         this calls the ScannerRunner for performing the scan work
         """
-        self.job = job
-
-        scan_runner_obj = ScannerRunner(self.job)
+        scan_runner_obj = ScannerRunner(job)
         status, scanners_data = scan_runner_obj.scan()
         if not status:
             self.logger.warning(
                 "Failed to run scanners on image under test, moving on!")
-            self.logger.warning("Job data %s", str(self.job))
+            self.logger.warning("Job data %s", str(job))
             self.logger.warning("Not sending job to poll_server tube.")
             # run the image and volume cleanup
             self.clean_up()
             return
         else:
-            self.logger.debug(str(scanners_data))
+            self.logger.debug("Scan is completed. Result {}".format(
+                scanners_data))
 
         # Remove the msg and logs from the job_info as they are not
         # needed now
         scanners_data.pop("msg", None)
         scanners_data.pop("logs", None)
-        scanners_data.pop("scan_results", None)
 
-        self.logger.info("Putting job for polling at poll_server tube.")
-        # copy the job to another variable to avoid "action" overriding
-        poll_job = self.job.copy()
-        # now put job for polling
-        self.put_job_for_polling(poll_job)
+        # presence of `gemini_report` hints if polling is done or not
+        # following will be executed after container is registered
+        if "gemini_report" not in job:
+            # copy the job in another var to avoid action var overwrite
+            poll_job = job.copy()
+            # here there is another clone of job params loaded on beanstalkd
+            self.put_job_for_polling(poll_job)
 
-        # if weekly scan, push the job for notification
         scanners_data["action"] = "notify"
         self.queue.put(json.dumps(scanners_data), 'master_tube')
-        self.logger.debug("Weekly scan for {} is complete.".format(
-            self.job.get("image_under_test", "container")))
 
-        # run the image and volume cleanup
+        # remove the image and volume cleanup
         self.clean_up()
 
     def put_job_for_polling(self, job):
