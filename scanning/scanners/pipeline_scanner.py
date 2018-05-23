@@ -53,7 +53,8 @@ class PipelineScanner(Scanner):
             for update in logs.get("Scan Results").get("Package Updates"):
                 msg = msg + update + "\n"
             data["msg"] = msg
-            data["alert"] = True
+            # We are not counting RPM updates as alerts for now
+            data["alert"] = False
         else:
             data["msg"] = "No updates required."
 
