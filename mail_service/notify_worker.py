@@ -58,7 +58,9 @@ class NotifyUser(object):
             subject,
             to_emails,
             self._escape_text_(contents),
-            attachments]
+        ]
+        # do not attach files for now as summary is sent in the email
+        # attachments]
         logger.debug("Mail command: {}".format(mail_cmd))
         subprocess.call(mail_cmd)
         logger.info("Sending email to user %s" %
