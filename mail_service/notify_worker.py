@@ -61,6 +61,8 @@ class NotifyUser(object):
             attachments]
         logger.debug("Mail command: {}".format(mail_cmd))
         subprocess.call(mail_cmd)
+        logger.info("Sending email to user %s" %
+                    self.job_info["notify_email"])
 
     def _read_status(self, filepath):
         "Method to read status JSON files"
@@ -176,9 +178,6 @@ class NotifyUser(object):
             self.send_email(subject, email_contents, attachments)
         if "problem" in self.alerts and self.problem:
             self.send_email(subject, email_contents, attachments)
-
-        logger.info("Sending email to user %s" %
-                    self.job_info["notify_email"])
 
     def remove_status_files(self, status_files):
         "Removes the status file"
