@@ -63,7 +63,7 @@ class AnalyticsIntegration(Scanner):
 
         if scan_type == "register":
             data["msg"] = ("Registered container for scanning at server."
-                    " Report has registration related info, no data.")
+                           " Report has registration related info, no data.")
         else:
             deps = logs.get("Scan Results", {}).get("dependencies", [])
             # if dependencies are not found
@@ -77,7 +77,8 @@ class AnalyticsIntegration(Scanner):
                     if each.get("cve_count", 0) > 0:
                         data["alert"] = True
                         for k, v in each.iteritems():
-                            msg = msg + "{}: {}+ \n".format(str(k), str(v))
+                            msg = msg + "\n{}:\t\t{}+ \n".format(str(k), str(v))
+                    msg = msg + "\n"
 
                 # if no cves found
                 if not data["alert"]:
