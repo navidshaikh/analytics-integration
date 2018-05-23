@@ -62,7 +62,7 @@ def poll_server(template_location):
     except Exception as e:
         logger.critical("Error job_details could not be updated %s" % str(e))
 
-    if job:
+    if job_obj:
         queue.delete(job_obj)
 
 
