@@ -153,7 +153,7 @@ class WeeklyScan(object):
         }
         self.logger.info("Putting {} for scan..".format(image))
         # now put image for scan
-        self.queue.put(json.dumps(job))
+        self.queue.put(json.dumps(job), "master_tube")
 
 
 if __name__ == "__main__":
