@@ -58,7 +58,9 @@ class NotifyUser(object):
             subject,
             to_emails,
             self._escape_text_(contents),
-            attachments]
+        ]
+        # do not attach files for now as summary is sent in the email
+        # attachments]
         logger.debug("Mail command: {}".format(mail_cmd))
         subprocess.call(mail_cmd)
         logger.info("Sending email to user %s" %
@@ -127,9 +129,12 @@ class NotifyUser(object):
         for scanner in self.scanners_status["logs_file_path"]:
             text += scanner + ":\n"
             text += self.scanners_status["msg"][scanner] + "\n"
+            # turns off sending attachments
+            """
             text += "Detailed logs: check attached file "
             text += os.path.basename(
                 self.scanners_status["logs_file_path"][scanner])
+            """
             text += "\n\n"
 
         return text
