@@ -42,6 +42,7 @@
                   sudo docker rmi {image_under_test}
                 else
                     echo "Success report scan has been requested for this"
+                    rm -f do_not_poll
                     jenkins-jobs --ignore-cache --conf ~/jenkins_jobs.ini delete  {api_server_poll_job_name}
                 fi
             else
