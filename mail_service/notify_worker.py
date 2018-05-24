@@ -127,7 +127,7 @@ class NotifyUser(object):
 
         text = ""
         for scanner in self.scanners_status["logs_file_path"]:
-            text += scanner + ":\n"
+            text += scanner + ":\n\n"
             text += self.scanners_status["msg"][scanner] + "\n"
             # turns off sending attachments
             """
@@ -137,7 +137,7 @@ class NotifyUser(object):
             """
             text += "\n\n"
 
-        return text
+        return text.rstrip()
 
     def compose_email_contents(self):
         "Aggregates contents from different modules and composes one email"
