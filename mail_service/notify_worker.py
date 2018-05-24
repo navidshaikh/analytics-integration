@@ -129,9 +129,12 @@ class NotifyUser(object):
         for scanner in self.scanners_status["logs_file_path"]:
             text += scanner + ":\n"
             text += self.scanners_status["msg"][scanner] + "\n"
+            # turns off sending attachments
+            """
             text += "Detailed logs: check attached file "
             text += os.path.basename(
                 self.scanners_status["logs_file_path"][scanner])
+            """
             text += "\n\n"
 
         return text
