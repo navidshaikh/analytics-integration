@@ -19,7 +19,7 @@ bs = beanstalkc.Connection(host="0.0.0.0")
 bs.watch("notify")
 
 SCANNERS_STATUS = "scanners_status.json"
-SUBJECT = "[osio-scan]{}: Report for {}"
+SUBJECT = "[osio-scan] {}: CVE found in {}"
 EMAIL_HEADER = "Atomic scanners report for image: {}"
 
 
@@ -181,8 +181,12 @@ class NotifyUser(object):
 
         if "ok" in self.alerts:
             self.send_email(subject, email_contents, attachments)
-        if "problem" in self.alerts and self.problem:
+        elif "problem" in self.alerts and self.problem:
             self.send_email(subject, email_contents, attachments)
+        else:
+            logger.debug("Not sending email based on alert config.")
+            logger.debug("Subject: {}".format(subject))
+            logger.debug("Contents: {}".format(email_contents))
 
     def remove_status_files(self, status_files):
         "Removes the status file"
