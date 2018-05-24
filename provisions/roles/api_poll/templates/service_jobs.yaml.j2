@@ -3,7 +3,7 @@
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
     triggers:
-      - timed: "H/60 * * * *"
+      - timed: "*/5 * * * *"
     builders:
         - shell: |
             WORKSPACE=`pwd`
