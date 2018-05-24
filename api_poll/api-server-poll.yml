@@ -14,7 +14,7 @@
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
     triggers:
-      - timed: "H * * * *"
+      - timed: "*/30 * * * *"
     builders:
         - shell: |
             export PYTHONPATH=$PYTHONPATH:/opt/scanning
