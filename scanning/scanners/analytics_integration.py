@@ -83,6 +83,9 @@ class AnalyticsIntegration(Scanner):
                             msg = msg + "{}: {}+ \n".format(str(k), str(v))
                         msg = msg + "\n"
 
+                # fix extra char "+" added to every response from server
+                msg = msg.replace("+", "")
+
                 # if no cves found
                 if not data["alert"]:
                     data["msg"] = "No CVEs found in image under test."
