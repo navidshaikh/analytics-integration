@@ -11,4 +11,4 @@
             cd /opt/scanning/api_poll/
             python poll_server.py $WORKSPACE
             cd $WORKSPACE
-            jenkins-jobs --ignore-cache --conf ~/jenkins_jobs.ini update poll_server_generated.yaml
+            jenkins-jobs --ignore-cache --conf /etc/jenkins_jobs/jenkins_jobs.ini update poll_server_generated.yaml
