@@ -14,7 +14,7 @@
     description: |
         Managed by Jenkins Job Builder, do not edit manually!
     triggers:
-      - timed: "H * * * *"
+      - timed: "H/30 * * * *"
     builders:
         - shell: |
             export PYTHONPATH=$PYTHONPATH:/opt/scanning
@@ -25,7 +25,7 @@
               COUNTER=0
             fi
 
-            echo "This is $COUNTER no run"
+            echo "This is $COUNTER number run .."
 
             if [ $COUNTER -lt 24 ]; then
                 if [ ! -f do_not_poll ]; then
@@ -42,13 +42,15 @@
                   sudo docker rmi {image_under_test}
                 else
                     echo "Success report scan has been requested for this"
-                    jenkins-jobs --ignore-cache --conf ~/jenkins_jobs.ini delete  {api_server_poll_job_name}
+                    rm -f do_not_poll counter.txt
+                    jenkins-jobs --ignore-cache --conf /etc/jenkins_jobs/jenkins_jobs.ini delete  {api_server_poll_job_name}
                 fi
             else
                 gemini_report=False
                 echo "Gemini server polling timed out"
                 python /opt/scanning/api_poll/send_scan_data_to_tube.py  {analytics_server} {image_under_test} {git_url} {git_sha} {logs_dir} $gemini_report
-                jenkins-jobs --ignore-cache --conf ~/jenkins_jobs.ini delete  {api_server_poll_job_name}
+                rm -f do_not_poll counter.txt
+                jenkins-jobs --ignore-cache --conf /etc/jenkins_jobs/jenkins_jobs.ini delete  {api_server_poll_job_name}
             fi
             COUNTER=$((COUNTER+1))
             rm -rf counter.txt
