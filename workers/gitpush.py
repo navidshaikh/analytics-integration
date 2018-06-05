@@ -12,10 +12,10 @@ from scanning.lib.command import run_cmd
 
 load_logger()
 
-logger = logging.getLogger('git-push')
+logger = logging.getLogger('notify')
 
 bs = beanstalkc.Connection(host="0.0.0.0")
-bs.watch("gitpush")
+bs.watch("notify")
 
 SCANNERS_STATUS = "scanners_status.json"
 
