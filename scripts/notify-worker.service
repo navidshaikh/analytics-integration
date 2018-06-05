@@ -3,5 +3,5 @@ Description=notify-worker.service
 
 [Service]
 Environment=PYTHONPATH=/opt/scanning
-ExecStart=/opt/scanning/mail_service/notify_worker.py
+ExecStart=/opt/scanning/workers/notify.py
 Restart=on-failure
