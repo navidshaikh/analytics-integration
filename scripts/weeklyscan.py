@@ -16,6 +16,7 @@ from scanning.lib.queue import JobQueue
 from scanning.lib.log import load_logger
 from scanning.lib import settings
 from scanning.lib.run_saasherder import run_saasherder
+from config import GITREPO
 
 
 class WeeklyScan(object):
@@ -30,6 +31,7 @@ class WeeklyScan(object):
         self.queue = JobQueue(host=settings.BEANSTALKD_HOST,
                               port=settings.BEANSTALKD_PORT,
                               sub=sub, pub=pub, logger=self.logger)
+        self.gitrepo = GITREPO
 
     def random_string(self, size=3):
         """
@@ -122,8 +124,14 @@ class WeeklyScan(object):
                 "Aborting weekly scan.")
             return None
 
-        for image in images:
+        # create weekly scan dir in configured git repo
+        scan_gitpath = self.create_weekly_scan_dir_in_git_repo()
+        if not scan_gitpath:
+            self.logger.fatal(
+                "Failed to create dir in git repo. Aborting weekly scan.")
+            return None
 
+        for image in images:
             # create logs dir
             resultdir = self.new_logs_dir()
             if not resultdir:
@@ -137,11 +145,25 @@ class WeeklyScan(object):
 
             # image = [git-url, git-hash, image]
             self.put_image_for_scanning(
-                image[2], resultdir, image[0], image[1])
+                image[2], resultdir, image[0], image[1], scan_gitpath)
             self.logger.info("Queued weekly scanning for {}.".format(image))
         return "Queued containers for weekly scan."
 
-    def put_image_for_scanning(self, image, logs_dir, giturl, gitsha):
+    def create_weekly_scan_dir_in_git_repo(self):
+        """
+        Creates weekly scan dir in configured git repo
+        """
+        scan_gitpath = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+        scan_gitpath = os.path.join(self.gitrepo, scan_gitpath)
+        try:
+            os.makedirs(scan_gitpath)
+        except Exception as e:
+            self.logger.fatal(str(e))
+            return False
+        return scan_gitpath
+
+    def put_image_for_scanning(self, image, logs_dir,
+                               giturl, gitsha, scan_gitpath):
         """
         Put the image for scanning on beanstalkd tube
         """
@@ -154,6 +176,7 @@ class WeeklyScan(object):
             "logs_dir": logs_dir,
             "git-url": giturl,
             "git-sha": gitsha,
+            "scan_gitpath": scan_gitpath,
         }
         self.logger.info("Putting {} for scan..".format(image))
         # now put image for scan
