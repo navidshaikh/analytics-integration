@@ -39,9 +39,9 @@ def poll_server(template_location):
     project["git_sha"] = job.get("git-sha")
     project["git_url"] = job.get("git-url")
     project["logs_dir"] = job.get("logs_dir")
-    project[
-        "api_server_poll_job_name"] = image_under_test.replace(
-            "/", "-").replace(".", "-").replace(":", "-")
+    project["scan_gitpath"] = job.get("scan_gitpath")
+    project["api_server_poll_job_name"] = image_under_test.replace(
+        "/", "-").replace(".", "-").replace(":", "-")
 
     try:
         env = Environment(loader=FileSystemLoader(
