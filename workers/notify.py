@@ -124,14 +124,14 @@ class GitPushWorker(object):
         image = image.replace("osio-prod/", "")
 
         # path of the git repo to write alerts inside
-        gitpath = self.job_info.get("gitpath")
+        scan_gitpath = self.job_info.get("scan_gitpath")
 
         # the dir to be created per image for alerts
         # replace / and : with - , this is for sane dir names
         image_dirname = image.replace("/", "-").replace(":", "-")
 
         # dir for alerts per container
-        alert_dirname = os.path.join(gitpath, image_dirname)
+        alert_dirname = os.path.join(scan_gitpath, image_dirname)
 
         # if dir does not exists, create one
         if not os.path.isdir(alert_dirname):
