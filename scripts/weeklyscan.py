@@ -153,14 +153,17 @@ class WeeklyScan(object):
         """
         Creates weekly scan dir in configured git repo
         """
-        scan_gitpath = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+        scan_gitpath = datetime.datetime.now().strftime("%Y/%b/%d/")
         scan_gitpath = os.path.join(self.gitrepo, scan_gitpath)
         try:
             os.makedirs(scan_gitpath)
         except Exception as e:
             self.logger.fatal(str(e))
             return False
-        return scan_gitpath
+        else:
+            self.logger.info("Scan git dir for alerts is created {}".format(
+                scan_gitpath))
+            return scan_gitpath
 
     def put_image_for_scanning(self, image, logs_dir,
                                giturl, gitsha, scan_gitpath):
