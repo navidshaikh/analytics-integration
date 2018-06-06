@@ -29,7 +29,6 @@ def send_scan_data(analytics_server, image_under_test, git_url,
     scan_details["gemini_report"] = True \
         if (gemini_report == "True") else False
 
-    scan_details["notify_email"] = settings.NOTIFY_EMAILS
     scan_details["logs_dir"] = logs_dir
     scan_details["scan_gitpath"] = scan_gitpath
 

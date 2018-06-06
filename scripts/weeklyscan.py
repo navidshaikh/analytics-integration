@@ -175,7 +175,6 @@ class WeeklyScan(object):
             "weekly": True,
             "image_under_test": image,
             "analytics_server": settings.ANALYTICS_SERVER,
-            "notify_email": settings.NOTIFY_EMAILS,
             "logs_dir": logs_dir,
             "git-url": giturl,
             "git-sha": gitsha,
