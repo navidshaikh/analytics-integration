@@ -6,38 +6,40 @@ import os
 
 # importing config present at root of repository
 from config import ALERTS
-from scanning.vendors import beanstalkc
-from scanning.lib.log import load_logger
+from scanning.lib import log
 from scanning.lib.command import run_cmd
-
-load_logger()
-
-logger = logging.getLogger('notify')
-
-bs = beanstalkc.Connection(host="0.0.0.0")
-bs.watch("notify")
+from base import BaseWorker
 
 SCANNERS_STATUS = "scanners_status.json"
 
 
-class GitPushWorker(object):
-    "Compose and send build status, linter and scanners results"
+class GitPushWorker(BaseWorker):
+    """
+    Notify worker aka gitpush worker. Sends alerts to configured git repo
+    """
 
-    def __init__(self, job_info):
+    def __init__(self, logger=None, sub=None, pub=None):
+        super(GitPushWorker, self).__init__(logger=logger, sub=sub, pub=pub)
+
+    def handle_job(self, job):
+        """
+        Handle the notify job
+        """
+        self.job = job
+
         self.alerts = ALERTS
-
-        self.job_info = job_info
-
-        self.image_under_test = job_info.get("image_under_test")
+        self.image_under_test = job.get("image_under_test")
 
         # the logs directory
-        self.logs_dir = self.job_info["logs_dir"]
+        self.logs_dir = self.job["logs_dir"]
 
         # scanners execution status file
         self.scanners_status_file = os.path.join(
             self.logs_dir, SCANNERS_STATUS)
 
         self.scanners_status = self._read_status(self.scanners_status_file)
+        # call the notify method, which orchestrate functioning
+        self.notify()
 
     def _read_status(self, filepath):
         "Method to read status JSON files"
@@ -98,7 +100,7 @@ class GitPushWorker(object):
                 return True
         return False
 
-    def run(self):
+    def notify(self):
         """
         Main method to orchestrate the alert text composition
         and git push the contents
@@ -124,7 +126,7 @@ class GitPushWorker(object):
         image = image.replace("osio-prod/", "")
 
         # path of the git repo to write alerts inside
-        scan_gitpath = self.job_info.get("scan_gitpath")
+        scan_gitpath = self.job.get("scan_gitpath")
 
         # the dir to be created per image for alerts
         # replace / and : with - , this is for sane dir names
@@ -181,6 +183,7 @@ class GitPushWorker(object):
             else:
                 # case for foo/bar:latest
                 registry = None
+
                 image = repo_name
 
         # for cases where len(parts) > 2
@@ -210,18 +213,10 @@ class GitPushWorker(object):
                 "image_name": image_name, "tag": tag}
 
 
-while True:
-    logger.debug("Listening to notify tube")
-    job = bs.reserve()
-    job_id = job.jid
-    job_info = json.loads(job.body)
-    logger.info("Received Job: {}".format(str(job_info)))
-    try:
-        gp_worker = GitPushWorker(job_info)
-        gp_worker.run()
-    except Exception as e:
-        logger.critical(
-            "Notify worker could not process the job: {} with error : {}"
-            .format(str(job_info), e))
-    finally:
-        job.delete()
+if __name__ == "__main__":
+
+    log.load_logger()
+    logger = logging.getLogger("notify")
+    gp_worker = GitPushWorker(logger, sub="notify", pub="notify_admin")
+    # run method is implemented in base worker
+    gp_worker.run()
