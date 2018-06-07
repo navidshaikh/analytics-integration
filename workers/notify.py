@@ -18,6 +18,7 @@ class GitPushWorker(BaseWorker):
     """
     Notify worker aka gitpush worker. Sends alerts to configured git repo
     """
+    NAME = "Notify Worker"
 
     def __init__(self, logger=None, sub=None, pub=None):
         super(GitPushWorker, self).__init__(logger=logger, sub=sub, pub=pub)
