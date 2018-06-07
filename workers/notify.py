@@ -211,7 +211,7 @@ class GitPushWorker(object):
 
 
 while True:
-    logger.debug("Listening to gitpush tube")
+    logger.debug("Listening to notify tube")
     job = bs.reserve()
     job_id = job.jid
     job_info = json.loads(job.body)
@@ -221,7 +221,7 @@ while True:
         gp_worker.run()
     except Exception as e:
         logger.critical(
-            "Gitpush worker could not process the job: {} with error : {}"
+            "Notify worker could not process the job: {} with error : {}"
             .format(str(job_info), e))
     finally:
         job.delete()

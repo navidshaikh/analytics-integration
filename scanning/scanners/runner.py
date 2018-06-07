@@ -363,7 +363,7 @@ class ScannerRunner(Scanner):
         # clean up the system post scan
         self.clean_up(image)
 
-        # the scanners_data returned itself will become job for gitpush_worker
+        # the scanners_data returned itself will become job for notify-worker
         return True, scanners_data
 
     def clean_up(self, image):
