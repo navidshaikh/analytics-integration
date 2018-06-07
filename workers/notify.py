@@ -53,7 +53,7 @@ class GitPushWorker(object):
     def _write_text_file(self, filepath, text):
         "Method to write text files"
         try:
-            fin = open(filepath)
+            fin = open(filepath, "w")
             fin.write(text)
         except IOError as e:
             logger.warning("Failed to write to {} file, error: {}".format(
@@ -135,7 +135,7 @@ class GitPushWorker(object):
 
         # if dir does not exists, create one
         if not os.path.isdir(alert_dirname):
-            os.path.makedirs(alert_dirname)
+            os.makedirs(alert_dirname)
 
         # abs path of alert file
         alert_path = os.path.join(alert_dirname, "alerts.txt")
@@ -144,7 +144,7 @@ class GitPushWorker(object):
             logger.critical("Failing to write alert contents.")
             return False
 
-        commit_msg = "Alerts for {}".format(self.image)
+        commit_msg = "Alerts for {}".format(self.image_under_test)
         cmd = ("cd {} && git add . && git commit -m '{}' "
                "&& git push origin master && cd -".format(
                    alert_dirname, commit_msg))
