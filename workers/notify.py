@@ -141,7 +141,7 @@ class GitPushWorker(object):
         alert_path = os.path.join(alert_dirname, "alerts.txt")
 
         if not self._write_text_file(alert_path, alert_contents):
-            self.logger.critical("Failing to write alert contents.")
+            logger.critical("Failing to write alert contents.")
             return False
 
         commit_msg = "Alerts for {}".format(self.image)
@@ -149,11 +149,11 @@ class GitPushWorker(object):
                "&& git push origin master && cd -".format(
                    alert_dirname, commit_msg))
 
-        self.logger.info("Adding and pushing alerts to git origin..")
+        logger.info("Adding and pushing alerts to git origin..")
         try:
             run_cmd(cmd, shell=True)
         except Exception as e:
-            self.logger.critical(
+            logger.critical(
                 "Failed to add alerts to git. Error {}".format(e))
             return False
 
