@@ -151,7 +151,7 @@ class GitPushWorker(object):
 
         self.logger.info("Adding and pushing alerts to git origin..")
         try:
-            run_cmd(cmd)
+            run_cmd(cmd, shell=True)
         except Exception as e:
             self.logger.critical(
                 "Failed to add alerts to git. Error {}".format(e))
