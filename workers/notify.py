@@ -9,6 +9,7 @@ from config import ALERTS
 from scanning.lib import log
 from scanning.lib.command import run_cmd
 from base import BaseWorker
+from config import GITBRANCH
 
 SCANNERS_STATUS = "scanners_status.json"
 
@@ -28,6 +29,9 @@ class GitPushWorker(BaseWorker):
         self.job = job
 
         self.alerts = ALERTS
+
+        self.gitbranch = GITBRANCH
+
         self.image_under_test = job.get("image_under_test")
 
         # the logs directory
@@ -147,9 +151,13 @@ class GitPushWorker(BaseWorker):
             return False
 
         commit_msg = "Alerts for {}".format(self.image_under_test)
-        cmd = ("cd {} && git add . && git commit -m '{}' "
-               "&& git push origin master && cd -".format(
-                   alert_dirname, commit_msg))
+        cmd = ("cd {0} && git checkout {1} && "
+               "git add . && git commit -m '{2}' "
+               "&& git push origin {1} && cd -".format(
+                   alert_dirname,
+                   self.gitbranch,
+                   commit_msg)
+               )
 
         logger.info("Adding and pushing alerts to git origin..")
         try:
