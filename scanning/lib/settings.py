@@ -45,7 +45,7 @@ LOGGING = dict(
             "propagate": False,
             "handlers": ["console", "log_to_file"],
         },
-        'mail-service': {
+        'notify': {
             "level": "DEBUG",
             "propagate": False,
             "handlers": ["console", "log_to_file"],
