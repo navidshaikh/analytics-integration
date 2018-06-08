@@ -53,8 +53,8 @@ class GitPushWorker(BaseWorker):
         try:
             fin = open(filepath)
         except IOError as e:
-            logger.warning("Failed to read %s file, error: %s" %
-                           (filepath, str(e)))
+            self.logger.warning("Failed to read %s file, error: %s" %
+                                (filepath, str(e)))
             return None
         else:
             return json.load(fin)
@@ -65,8 +65,8 @@ class GitPushWorker(BaseWorker):
             fin = open(filepath, "w")
             fin.write(text)
         except IOError as e:
-            logger.warning("Failed to write to {} file, error: {}".format(
-                           filepath, e))
+            self.logger.warning("Failed to write to {} file, error: {}".format(
+                filepath, e))
             return None
         else:
             return True
@@ -77,8 +77,8 @@ class GitPushWorker(BaseWorker):
         try:
             fin = open(text_file)
         except IOError as e:
-            logger.warning("Failed to read %s file, error: %s" %
-                           (text_file, str(e)))
+            self.logger.warning("Failed to read %s file, error: %s" %
+                                (text_file, str(e)))
             return None
         else:
             return fin.read()
@@ -120,9 +120,10 @@ class GitPushWorker(BaseWorker):
         elif "problem" in self.alerts and self.problem:
             self.gitpush(alert_contents)
         else:
-            logger.debug("Not pushing scan data to git based on alert config.")
-            logger.debug("Image: {}".format(self.image_under_test))
-            logger.debug("Contents: {}".format(alert_contents))
+            self.logger.debug(
+                "Not pushing scan data to git based on alert config.")
+            self.logger.debug("Image: {}".format(self.image_under_test))
+            self.logger.debug("Contents: {}".format(alert_contents))
 
     def copy_scanner_result_file(self, destdir,
                                  scanner="analytics-integration"):
@@ -141,8 +142,8 @@ class GitPushWorker(BaseWorker):
         try:
             copy2(logs_file_path, destdir)
         except IOError as e:
-            logger.error("Failed to copy over scanner result file.")
-            logger.error("Error: {}".format(e))
+            self.logger.error("Failed to copy over scanner result file.")
+            self.logger.error("Error: {}".format(e))
             return False
         else:
             return True
@@ -173,7 +174,7 @@ class GitPushWorker(BaseWorker):
         alert_path = os.path.join(alert_dirname, "alerts.txt")
 
         if not self._write_text_file(alert_path, alert_contents):
-            logger.critical("Failing to write alert contents.")
+            self.logger.critical("Failing to write alert contents.")
             return False
 
         commit_msg = "Alerts for {}".format(self.image_under_test)
@@ -189,11 +190,11 @@ class GitPushWorker(BaseWorker):
                    commit_msg)
                )
 
-        logger.info("Adding and pushing alerts to git origin..")
+        self.logger.info("Adding and pushing alerts to git origin..")
         try:
             run_cmd(cmd, shell=True)
         except Exception as e:
-            logger.critical(
+            self.logger.critical(
                 "Failed to add alerts to git. Error {}".format(e))
             return False
 
