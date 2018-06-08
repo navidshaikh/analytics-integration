@@ -153,7 +153,7 @@ class WeeklyScan(object):
         """
         Creates weekly scan dir in configured git repo
         """
-        scan_gitpath = datetime.datetime.now().strftime("%Y/%b/%d/")
+        scan_gitpath = datetime.datetime.now().strftime("%Y/%m/%d/")
         scan_gitpath = os.path.join(self.gitrepo, scan_gitpath)
         try:
             os.makedirs(scan_gitpath)
