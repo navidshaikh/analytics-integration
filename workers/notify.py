@@ -11,6 +11,8 @@ from scanning.lib.command import run_cmd
 from base import BaseWorker
 from config import GITBRANCH
 
+from shutil import copy2
+
 SCANNERS_STATUS = "scanners_status.json"
 
 
@@ -122,6 +124,29 @@ class GitPushWorker(BaseWorker):
             logger.debug("Image: {}".format(self.image_under_test))
             logger.debug("Contents: {}".format(alert_contents))
 
+    def copy_scanner_result_file(self, destdir,
+                                 scanner="analytics-integration"):
+        """
+        Copy given scanners result file into output git dir
+
+        destdir: destination dir, a new file with same basename as source will
+                 be written
+        default scanner=analytics-integration
+        """
+        logs_file_path = self.job.get("logs_file_path", {}).get(scanner, None)
+
+        if not logs_file_path:
+            return False
+
+        try:
+            copy2(logs_file_path, destdir)
+        except IOError as e:
+            logger.error("Failed to copy over scanner result file.")
+            logger.error("Error: {}".format(e))
+            return False
+        else:
+            return True
+
     def gitpush(self, alert_contents):
         """
         push the alert contents to configured git repository
@@ -152,6 +177,10 @@ class GitPushWorker(BaseWorker):
             return False
 
         commit_msg = "Alerts for {}".format(self.image_under_test)
+
+        # copy scanner's original result file into git path
+        self.copy_scanner_result_file(destdir=alert_dirname)
+
         cmd = ("cd {0} && git checkout {1} && "
                "git add . && git commit -m '{2}' "
                "&& git push origin {1} && cd -".format(
