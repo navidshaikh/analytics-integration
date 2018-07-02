@@ -345,10 +345,10 @@ class ScannerRunner(Scanner):
         # update scanners_data dict with results from scanners
         scanners_data.update(data)
 
-        # keep notify_user action in data, even if we are deleting the job,
+        # keep notify action in data, even if we are deleting the job,
         # since whenever we will read the response, we should be able to see
         # action
-        scanners_data["action"] = "notify_user"
+        scanners_data["action"] = "notify"
 
         # TODO: Check here if at least one scanner ran successfully
         self.logger.info("Finished executing all scanners.")
@@ -363,7 +363,7 @@ class ScannerRunner(Scanner):
         # clean up the system post scan
         self.clean_up(image)
 
-        # the scanners_data returned itself will become job for notify_worker
+        # the scanners_data returned itself will become job for notify-worker
         return True, scanners_data
 
     def clean_up(self, image):

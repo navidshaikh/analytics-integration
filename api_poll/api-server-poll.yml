@@ -8,6 +8,7 @@
             git_url: {{ git_url }}
             git_sha: {{ git_sha }}
             logs_dir: {{ logs_dir }}
+            scan_gitpath: {{ scan_gitpath }}
 
 - job-template:
     name: {{ api_server_poll_job_name }}
@@ -27,7 +28,7 @@
 
             echo "This is $COUNTER number run .."
 
-            if [ $COUNTER -lt 24 ]; then
+            if [ $COUNTER -lt 48 ]; then
                 if [ ! -f do_not_poll ]; then
                   sudo docker tag registry.access.redhat.com/rhel7:latest {image_under_test}
                   STATUS_CODE=$(sudo SERVER={analytics_server} IMAGE_NAME={image_under_test} GITURL={git_url} GITSHA={git_sha} atomic scan --verbose --scanner=analytics-integration --scan_type=report {image_under_test}|grep api_status_code|cut -f2 -d ":"|cut -c2-4)
@@ -35,7 +36,7 @@
                       echo "Success"
                       gemini_report=True
                       touch do_not_poll
-                      python /opt/scanning/api_poll/send_scan_data_to_tube.py  {analytics_server} {image_under_test} {git_url} {git_sha} {logs_dir} $gemini_report
+                      python /opt/scanning/api_poll/send_scan_data_to_tube.py  {analytics_server} {image_under_test} {git_url} {git_sha} {logs_dir} {scan_gitpath} $gemini_report
                   else
                       echo "Status code from Gemini API is $STATUS_CODE"
                   fi
@@ -48,7 +49,7 @@
             else
                 gemini_report=False
                 echo "Gemini server polling timed out"
-                python /opt/scanning/api_poll/send_scan_data_to_tube.py  {analytics_server} {image_under_test} {git_url} {git_sha} {logs_dir} $gemini_report
+                python /opt/scanning/api_poll/send_scan_data_to_tube.py  {analytics_server} {image_under_test} {git_url} {git_sha} {logs_dir} {scan_gitpath} $gemini_report
                 rm -f do_not_poll counter.txt
                 jenkins-jobs --ignore-cache --conf /etc/jenkins_jobs/jenkins_jobs.ini delete  {api_server_poll_job_name}
             fi

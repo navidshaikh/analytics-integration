@@ -6,5 +6,4 @@
         - timed: "59 11 * * 6"
     builders:
         - shell: |
-            sudo export PYTHONPATH=/opt/scanning
-            sudo python /opt/scanning/scripts/weeklyscan.py
+            sudo PYTHONPATH=/opt/scanning python /opt/scanning/scripts/weeklyscan.py
