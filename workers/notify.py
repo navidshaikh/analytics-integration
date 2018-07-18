@@ -15,6 +15,14 @@ from shutil import copy2
 
 SCANNERS_STATUS = "scanners_status.json"
 
+SCANNERS_RESULT_FILENAMES = [
+    "analytics_scanner_results.json",
+    "misc_package_updates_scanner_results.json",
+    "rpm_verify_scanner_results.json",
+    "container_capabilities_scanner_results.json",
+    "pipeline_scanner_results.json",
+]
+
 
 class GitPushWorker(BaseWorker):
     """
@@ -125,8 +133,7 @@ class GitPushWorker(BaseWorker):
             self.logger.debug("Image: {}".format(self.image_under_test))
             self.logger.debug("Contents: {}".format(alert_contents))
 
-    def copy_scanner_result_file(self, destdir,
-                                 scanner="analytics-integration"):
+    def copy_scanners_result_file(self, destdir):
         """
         Copy given scanners result file into output git dir
 
@@ -134,19 +141,24 @@ class GitPushWorker(BaseWorker):
                  be written
         default scanner=analytics-integration
         """
-        logs_file_path = self.job.get("logs_file_path", {}).get(scanner, None)
+        logs_dir = self.job.get("logs_dir", "")
+        if not logs_dir:
+            self.logger.error(
+                "Logs dir not found for adding scanners result to git.")
+            return
 
-        if not logs_file_path:
-            return False
+        for each in SCANNERS_RESULT_FILENAMES:
+            source = os.path.join(logs_dir, each)
+            if not os.path.exists(source):
+                self.logger.warning(
+                    "Result file {} is absent.".format(source))
+                continue
 
-        try:
-            copy2(logs_file_path, destdir)
-        except IOError as e:
-            self.logger.error("Failed to copy over scanner result file.")
-            self.logger.error("Error: {}".format(e))
-            return False
-        else:
-            return True
+            try:
+                copy2(source, destdir)
+            except IOError as e:
+                self.logger.error("Failed to copy file {}.".format(source))
+                self.logger.error("Error: {}".format(e))
 
     def gitpush(self, alert_contents):
         """
@@ -180,7 +192,7 @@ class GitPushWorker(BaseWorker):
         commit_msg = "Alerts for {}".format(self.image_under_test)
 
         # copy scanner's original result file into git path
-        self.copy_scanner_result_file(destdir=alert_dirname)
+        self.copy_scanners_result_file(destdir=alert_dirname)
 
         cmd = ("cd {0} && git checkout {1} && "
                "git add . && git commit -m '{2}' "
