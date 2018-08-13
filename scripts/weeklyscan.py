@@ -11,6 +11,7 @@ import logging
 import os
 import random
 import string
+import sys
 
 from scanning.lib.queue import JobQueue
 from scanning.lib.log import load_logger
@@ -129,7 +130,7 @@ class WeeklyScan(object):
         if not scan_gitpath:
             self.logger.fatal(
                 "Failed to create dir in git repo. Aborting weekly scan.")
-            return None
+            sys.exit(1)
 
         for image in images:
             # create logs dir
