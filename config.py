@@ -19,4 +19,4 @@ ACCESS_TOKEN_FILE = ("/opt/scanning/atomic_scanners/"
                      "scanner-analytics-integration/osio_token.txt")
 
 ANALYTICS_SCANNER_CONTEXT = \
-    "/opt/scanning/atomic_scanners/scannaer-analytics-integration/"
+    "/opt/scanning/atomic_scanners/scanner-analytics-integration/"

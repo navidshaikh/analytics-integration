@@ -24,10 +24,10 @@ def refresh_token():
     """
     command = """\
 curl -H "Content-Type: application/json" -X POST -d \
-'{"refresh_token":"{REFRESH_TOKEN}"}' \
+'{"refresh_token":"%s"}' \
 https://auth.openshift.io/api/token/refresh """
 
-    command = command.format(open(REFRESH_TOKEN_FILE).read().strip())
+    command = command % open(REFRESH_TOKEN_FILE).read().strip()
     access_token = run_cmd(command, shell=True)
     if not access_token:
         print ("Error fetching access token")
@@ -40,7 +40,7 @@ def rebuilt_analytics_scanner(access_token):
     """
     Rebuilt the analytics-scanner
     """
-    with open(ACCESS_TOKEN_FILE) as fin:
+    with open(ACCESS_TOKEN_FILE, "w") as fin:
         fin.write(access_token)
 
     command = """\
