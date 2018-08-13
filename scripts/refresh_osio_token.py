@@ -28,6 +28,12 @@ curl -H "Content-Type: application/json" -X POST -d \
 https://auth.openshift.io/api/token/refresh """
 
     command = command % open(REFRESH_TOKEN_FILE).read().strip()
+
+    # curl returns a complete json with multiple fields
+    # we just want the access_token value (string) inside
+    # token dictionary
+    command = command + " | jq -r .token.access_token"
+
     access_token = run_cmd(command, shell=True)
     if not access_token:
         print ("Error fetching access token")
