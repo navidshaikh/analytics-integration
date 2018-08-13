@@ -45,7 +45,8 @@ def rebuilt_analytics_scanner(access_token):
 
     command = """\
 cd {CONTEXT} && \
-docker build -t scanner-analytics-integration:rhel7 -f Dockerfile.rhel7 . && \
+sudo docker build -t scanner-analytics-integration:rhel7 -f \
+Dockerfile.rhel7 . && \
 cd - """
     command = command.format(CONTEXT=ANALYTICS_SCANNER_CONTEXT)
     return run_cmd(command, shell=True)
