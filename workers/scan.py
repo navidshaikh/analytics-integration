@@ -46,7 +46,11 @@ class ScanWorker(BaseWorker):
         scanners_data.pop("logs", None)
 
         # presence of `gemini_report` hints if polling is done or not
-        # following will be executed after container is registered
+        # if its present, it means, the scan job is coming after polling
+        # and report api call needs to be made
+
+        # if "gemini_report" is absent in job, it means, the job needs
+        # to be put for polling
         if "gemini_report" not in job:
             # copy the job in another var to avoid action var overwrite
             poll_job = job.copy()

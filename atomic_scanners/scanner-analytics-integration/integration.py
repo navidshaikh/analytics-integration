@@ -333,7 +333,8 @@ class Scanner(object):
             status, output = per_scan_object.run()
             print ("Scanner execution status: {}".format(status))
             print ("api_status_code: {}".format(
-                output.get("api_status_code", 404)))
+                output.get("api_status_code",
+                           "Unable to retrieve status code!")))
 
             # Write scan results to json file
             out_path = os.path.join(OUTDIR, container)

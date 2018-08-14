@@ -34,7 +34,16 @@
                   STATUS_CODE=$(sudo SERVER={analytics_server} IMAGE_NAME={image_under_test} GITURL={git_url} GITSHA={git_sha} atomic scan --verbose --scanner=analytics-integration --scan_type=report {image_under_test}|grep api_status_code|cut -f2 -d ":"|cut -c2-4)
                   if [ "$STATUS_CODE" == "200" ]; then
                       echo "Success"
+                      # gemini_report=True marks here that api server has reported something
+                      # in this case it has reported that, it has generated the report
                       gemini_report=True
+                      touch do_not_poll
+                      python /opt/scanning/api_poll/send_scan_data_to_tube.py  {analytics_server} {image_under_test} {git_url} {git_sha} {logs_dir} {scan_gitpath} $gemini_report
+                  elif [ "$STATUS_CODE" == "400" ]; then
+                      echo "dependency/version-lock file is absent in referenced Git repo. Report can't be generated at server."
+                      # gemini_report=False marks here that api server has nothing to report
+                      # as the referenced git repo doesn't have version-lock/dependency file.
+                      gemini_report=False
                       touch do_not_poll
                       python /opt/scanning/api_poll/send_scan_data_to_tube.py  {analytics_server} {image_under_test} {git_url} {git_sha} {logs_dir} {scan_gitpath} $gemini_report
                   else
