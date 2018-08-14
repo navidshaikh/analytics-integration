@@ -1,0 +1,3 @@
+Dummy referesh token, replace this text with actual refresh token.
+Refer doc https://fabric8-services.github.io/fabric8-auth/reference.html#_offline_tokens
+for more details.
