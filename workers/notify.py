@@ -203,7 +203,7 @@ class GitPushWorker(BaseWorker):
                 self.logger.critical("Failing to write alert contents.")
                 return False
 
-        commit_msg = "Alerts for {}".format(self.image_under_test)
+        commit_msg = "Scan results for {}".format(self.image_under_test)
 
         # copy scanner's original result file into git path
         self.copy_scanners_result_file(destdir=alert_dirname)
