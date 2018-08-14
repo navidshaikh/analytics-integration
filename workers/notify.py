@@ -200,8 +200,8 @@ class GitPushWorker(BaseWorker):
             alert_path = os.path.join(alert_dirname, "alerts.txt")
 
             if not self._write_text_file(alert_path, alert_contents):
-                self.logger.critical("Failing to write alert contents.")
-                return False
+                self.logger.warning(
+                    "Failing to write alert contents. Moving on!")
 
         commit_msg = "Scan results for {}".format(self.image_under_test)
 
