@@ -6,4 +6,5 @@
         - timed: "59 11 * * 6"
     builders:
         - shell: |
+            sudo PYTHONPATH=/opt/scanning python /opt/scanning/scripts/refresh_osio_token.py
             sudo PYTHONPATH=/opt/scanning python /opt/scanning/scripts/weeklyscan.py
