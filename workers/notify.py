@@ -121,12 +121,23 @@ class GitPushWorker(BaseWorker):
         and git push the contents
         """
         self.problem = self.is_problem_in_reports()
+        # alert_contents could be empty too, which is handled
+        # later in notify method, in case of empty alert_contents
+        # no alert.txt file will be generated
         alert_contents = self.compose_scanners_summary()
 
+        # "ok" and "problem" are two possible alert configs
+        # "ok" means, every scanned container results will be logged
+        # irrespective of whether results are "problem" or not
         if "ok" in self.alerts:
             self.gitpush(alert_contents)
+
+        # if "problem" alert configs are configured in config.py
+        # only containers identified with problems will be reported
+        # at configured git repository
         elif "problem" in self.alerts and self.problem:
-            self.gitpush(alert_contents)
+            self.gitpuh(alert_contents)
+
         else:
             self.logger.debug(
                 "Not pushing scan data to git based on alert config.")
@@ -160,7 +171,7 @@ class GitPushWorker(BaseWorker):
                 self.logger.error("Failed to copy file {}.".format(source))
                 self.logger.error("Error: {}".format(e))
 
-    def gitpush(self, alert_contents):
+    def gitpush(self, alert_contents=None):
         """
         push the alert contents to configured git repository
         """
@@ -182,14 +193,17 @@ class GitPushWorker(BaseWorker):
         if not os.path.isdir(alert_dirname):
             os.makedirs(alert_dirname)
 
-        # abs path of alert file
-        alert_path = os.path.join(alert_dirname, "alerts.txt")
+        # if alerts_contents are given, then only generate the alerts.txt
+        # file, else only log the scanners results
+        if alert_contents:
+            # abs path of alert file
+            alert_path = os.path.join(alert_dirname, "alerts.txt")
 
-        if not self._write_text_file(alert_path, alert_contents):
-            self.logger.critical("Failing to write alert contents.")
-            return False
+            if not self._write_text_file(alert_path, alert_contents):
+                self.logger.warning(
+                    "Failing to write alert contents. Moving on!")
 
-        commit_msg = "Alerts for {}".format(self.image_under_test)
+        commit_msg = "Scan results for {}".format(self.image_under_test)
 
         # copy scanner's original result file into git path
         self.copy_scanners_result_file(destdir=alert_dirname)
@@ -202,7 +216,7 @@ class GitPushWorker(BaseWorker):
                    commit_msg)
                )
 
-        self.logger.info("Adding and pushing alerts to git origin..")
+        self.logger.info("Adding and pushing alerts to git..")
         try:
             run_cmd(cmd, shell=True)
         except Exception as e:
