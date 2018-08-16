@@ -136,8 +136,10 @@ def get_request(endpoint, api, data):
                 url, data)
         return False, error + " Error: " + str(e), 0
     else:
-        # requests.codes.ok == 200
-        if r.status_code == requests.codes.ok:
+        # requests.codes.ok == 200 or
+        # check for 400 code - as this is a valid response
+        # as per the workflow
+        if r.status_code in [requests.codes.ok, 400]:
             return True, json.loads(r.text), r.status_code
         else:
             msg = "Returned {} status code for {}. {}".format(
@@ -298,8 +300,14 @@ class AnalyticsIntegration(object):
         self.json_out["Successful"] = True
         current_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-%f")
         self.json_out["Finished Time"] = current_time
-        self.json_out["Summary"] = resp.get(
-            "summary", "Check detailed report for more info.")
+        if status_code == 400:
+            self.json_out["Summary"] = resp.get(
+                "summary",
+                "Report can't be generated at server as source git repo has "
+                "missing dependency/lock/manifest file.")
+        else:
+            self.json_out["Summary"] = resp.get(
+                "summary", "Check detailed report for more info.")
         self.json_out["Scan Results"] = resp
         self.json_out["api"] = self.api
         self.json_out["api_data"] = self.data
@@ -333,7 +341,8 @@ class Scanner(object):
             status, output = per_scan_object.run()
             print ("Scanner execution status: {}".format(status))
             print ("api_status_code: {}".format(
-                output.get("api_status_code", 404)))
+                output.get("api_status_code",
+                           "Unable to retrieve status code!")))
 
             # Write scan results to json file
             out_path = os.path.join(OUTDIR, container)

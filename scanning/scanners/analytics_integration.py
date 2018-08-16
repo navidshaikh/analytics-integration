@@ -69,10 +69,34 @@ class AnalyticsIntegration(Scanner):
             data["msg"] = ("Registered container for scanning at server."
                            " Report has registration related info, no data.")
         else:
+            # get the git-url and get-sha to report the values in summary msg
+            git_url = logs.get("api_data", {}).get("git-url", "")
+            git_sha = logs.get("api_data", {}).get("git-sha", "")
+
+            # get the status code
+            api_status_code = int(logs.get("api_status_code", 0))
+
+            # 400 means dependency/version-lock file is absent in
+            # referenced git repository, and server can't generate a report
+            if api_status_code == 400:
+
+                data["msg"] = (
+                    "dependency/version-lock file is absent in {} for git-sha="
+                    "{}. Anlaytics report can't be generated.".format(
+                        git_url, git_sha))
+
+                return data
+
+            # rest of the following cases are for 200 and 404 status codes
+            # where either report is generated or server has timed out
+            # (24 hours) to generate the report
+
             deps = logs.get("Scan Results", {}).get("dependencies", [])
             # if dependencies are not found
             if not deps:
-                data["msg"] = "No dependencies found. Timed out."
+                data["msg"] = ("No report found for {} git-sha={} at server."
+                               "Timed out after waiting for 24 hours!".format(
+                                   git_url, git_sha))
             else:
                 msg = ""
                 # iterate through all dependencies found
