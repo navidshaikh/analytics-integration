@@ -209,6 +209,7 @@ class GitPushWorker(BaseWorker):
         self.copy_scanners_result_file(destdir=alert_dirname)
 
         cmd = ("cd {0} && git checkout {1} && "
+               "git pull origin {1} && "
                "git add . && git commit -m '{2}' "
                "&& git push origin {1} && cd -".format(
                    alert_dirname,
