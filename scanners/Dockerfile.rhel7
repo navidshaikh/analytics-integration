@@ -1,6 +1,6 @@
 FROM registry.access.redhat.com/rhel7
 
-LABEL INSTALL='docker run --rm --privileged -v /etc/atomic.d:/host/etc/atomic.d/ $IMAGE sh /install.sh'
+LABEL INSTALL='docker run -d --rm --name osio_scan $IMAGE'
 
 # fix for employee subscription
 RUN yum -y install deltarpm yum-utils --disablerepo=*-eus-* --disablerepo=*-htb-* \
@@ -12,4 +12,8 @@ RUN yum -y update && \
     yum -y install python-docker-py && \
     yum clean all
 
-ADD misc-package-updates scanner.py install.sh /
+ADD .scanners/ /opt/
+
+ENV PYTHONPATH="/opt/scanners/"
+
+VOLUME ["/opt/scanners/"]
