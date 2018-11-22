@@ -7,6 +7,7 @@ for sub-scanners.
 from datetime import datetime
 
 import logging
+import os
 import platform
 import subprocess
 
@@ -18,6 +19,7 @@ class BaseScanner(object):
     """
     # scanner name
     NAME = ''
+    DESCRIPTION = ''
 
     def __init__(self, logger=None):
         self.logger = logger or logging.getLogger('console')
@@ -38,6 +40,47 @@ class BaseScanner(object):
             "message": "",
             "logs": "",
         }
+
+    def which(self, binary):
+        """
+        Finds the absolute path of the given binary
+
+        :param binary: Binary name example: npm
+        :type binary: str
+
+        :return: Returns the absolute path of binary in system or None
+                 if binary is absent in the system
+        :rtype: str
+        """
+        def is_executable(fpath):
+            """
+            Check whether the specified path is a file and has executable
+            permissions set
+            :param fpath: Path of the binary
+            :param fpath: str
+            :return: True if given path is file and has executable permission
+            """
+            return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+        # split the base path and filename
+        fpath, fname = os.path.split(binary)
+        # checks if the base path is present (in case for eg: /usr/bin/npm)
+        if fpath:
+            # checks whether absolute path of provided binary is executable
+            if is_executable(binary):
+                # if it exists and executable return same path
+                return binary
+        # the provided binary is not absolute path, so we need to check for
+        # its existence by appending it to system PATH
+        else:
+            # iterate over each PATH env var value
+            for path in os.environ["PATH"].split(os.pathsep):
+                # generate the absolute path for checking its existence
+                exe_file = os.path.join(path, binary)
+                if is_executable(exe_file):
+                    return exe_file
+        # if not returned above, it means, the file doesn't exist
+        return None
 
     def run(self):
         """
