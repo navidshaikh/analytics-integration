@@ -209,7 +209,7 @@ class RPMVerify(BaseScanner):
 
 if __name__ == "__main__":
     try:
-        rpmverify = RPMVerify('')
+        rpmverify = RPMVerify()
         result = rpmverify.run()
         rpmverify.print_result(result)
     except BinaryDoesNotExist as e:
