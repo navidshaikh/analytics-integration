@@ -9,7 +9,7 @@
 import re
 import sys
 
-from scanners.base_scanner import BaseScanner
+from scanners.base_scanner import BaseScanner, BinaryDoesNotExist
 
 
 class RPMVerify(BaseScanner):
@@ -17,7 +17,7 @@ class RPMVerify(BaseScanner):
     Verify installed RPMs
     """
     NAME = "RPM-verify"
-    DESCRIPTION = 'Scan for verifying installed RPMs and reporting issues.'
+    DESCRIPTION = 'Verify installed RPMs and report issues if any.'
     # Filter the paths you know the resulting image or base image itself
     # has issue about and need to be filtered
     # out since this is a known issue and it is in progress to get fixed.
@@ -61,12 +61,14 @@ class RPMVerify(BaseScanner):
 
     def __init__(self, image):
         super(RPMVerify, self).__init__()
+        # figure out the absolute path of binary in target system
+        self.rpm_binary = self.which("rpm")
 
-    def get_command(self):
+    def get_rpm_verify_command(self):
         """
         Command to run the rpm verify test
         """
-        return ["/bin/rpm", "-Va"]
+        return [self.rpm_binary, "-Va"]
 
     def get_meta_of_rpm(self, rpm):
         """
@@ -164,9 +166,9 @@ class RPMVerify(BaseScanner):
         """
         result = self.output_format.copy()
         result['start_time'] = self.time_now()
-        cmd = self.get_command()
+        cmd = self.get_rpm_verify_command()
         out, err = self.run_cmd_out_err(cmd)
-        result['logs'] =  self.process_cmd_output_data(out)
+        result['logs'] = self.process_cmd_output_data(out)
         result['successful'] = True
         result['alert'] = True
         result['end_time'] = self.time_now()
@@ -210,6 +212,10 @@ if __name__ == "__main__":
         rpmverify = RPMVerify('')
         result = rpmverify.run()
         rpmverify.print_result(result)
+    except BinaryDoesNotExist as e:
+        print (e)
+        print ("Scan is aborted!")
+        sys.exit(1)
     except Exception as e:
         print ("Error occurred in RPM Verify scanner execution.")
         print ("Error: {0}".format(e))
