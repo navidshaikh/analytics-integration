@@ -16,7 +16,7 @@ class RPMVerify(BaseScanner):
     """
     Verify installed RPMs
     """
-    NAME = "RPM-verify"
+    NAME = "rpm-verify-scanner"
     DESCRIPTION = 'Verify installed RPMs and report issues if any.'
     # Filter the paths you know the resulting image or base image itself
     # has issue about and need to be filtered
@@ -59,7 +59,7 @@ class RPMVerify(BaseScanner):
         "P": "caPabilities differ",
     }
 
-    def __init__(self, image):
+    def __init__(self):
         super(RPMVerify, self).__init__()
         # figure out the absolute path of binary in target system
         self.rpm_binary = self.which("rpm")
