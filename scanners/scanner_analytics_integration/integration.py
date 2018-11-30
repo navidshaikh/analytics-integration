@@ -1,5 +1,8 @@
 #!/usr/bin/env python2
 
+
+from scanners.base_scanner import BaseScanner
+
 from requests.compat import urljoin
 from datetime import datetime
 
@@ -7,158 +10,29 @@ import json
 import logging
 import os
 import requests
-import subprocess
 import sys
 
 
-OUTDIR = "/scanout"
-INDIR = "/scanin"
-
-TOKEN = open("osio_token.txt").read().strip()
-
-HEADERS = {
-    "content-type": "application/json",
-    "Authorization": "Bearer {}".format(TOKEN)
-}
-
-
-def configure_logging(name="integration-scanner"):
+class AnalyticsIntegration(BaseScanner):
     """
-    Configures logging and returns logger object
+    Analytics integration with server
     """
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        "%(asctime)s %(levelname)s p%(process)s %(name)s %(lineno)d "
-        "%(levelname)s - %(message)s"
-    )
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    return logger
+    NAME = "analytics-integration-scanner"
+    DESCRIPTION = ("Analytics integration scanner fetching"
+                   " report from Analytics server.")
+    TOKEN = open("osio_token.txt").read().strip()
 
+    HEADERS = {
+        "content-type": "application/json",
+        "Authorization": "Bearer {}".format(TOKEN)
+    }
 
-def get_env_var(env_name):
-    """
-    Gets the configured given env_name or None
-    """
-    if not os.environ.get(env_name, False):
-        raise ValueError(
-            "No value for {0} env var. Please re-run with: "
-            "{0}=<VALUE> [..] atomic scan [..] ".format(env_name)
-        )
-    return os.environ.get(env_name)
-
-
-def get_image_uuid(client, image_name):
-    """
-    Using passed docker client object, returns image uuid for image_name.
-    """
-    return client.inspect_image(image_name)["Id"].split(":")[-1]
-
-
-def run_command(cmd, shell=True):
-    """
-    Runs a shell command.
-
-    :param cmd: Command to run
-    :param shell: Whether to run raw shell commands with '|' and redirections
-    :type cmd: str
-    :type shell: boolean
-
-    :return: Command output
-    :rtype: str
-    :raises: subprocess.CalledProcessError
-    """
-    if shell:
-        return subprocess.check_output(cmd, shell=True)
-    else:
-        return subprocess.check_output(cmd.split(), shell=False)
-
-
-def post_request(endpoint, api, data):
-    """
-    Make a post call to analytics server with given data
-
-    :param endpoint: API server end point
-    :param api: API to make POST call against
-    :param data: JSON data needed for POST call to api endpoint
-
-    :return: Tuple (status, error_if_any, status_code)
-             where status = True/False
-                   error_if_any = string message on error, "" on success
-                   status_code = status_code returned by server
-    """
-    url = urljoin(endpoint, api)
-    # TODO: check if we need API key in data
-    try:
-        r = requests.post(
-            url,
-            json.dumps(data),
-            headers=HEADERS)
-    except requests.exceptions.RequestException as e:
-        error = ("Could not send POST request to URL {0}, "
-                 "with data: {1}.").format(url, str(data))
-        return False, error + " Error: " + str(e), 0
-    else:
-        # requests.codes.ok == 200
-        if r.status_code == requests.codes.ok:
-            return True, json.loads(r.text), r.status_code
-        else:
-            return False, "Returned {} status code for {}".format(
-                r.status_code, url), r.status_code
-
-
-def get_request(endpoint, api, data):
-    """
-    Make a get call to analytics server
-
-    :param endpoint: API server end point
-    :param api: API to make GET call against
-    :param data: JSON data needed for GET call
-
-    :return: Tuple (status, error_if_any, status_code)
-             where status = True/False
-                   error_if_any = string message on error, "" on success
-                   status_code = status_code returned by server
-    """
-    url = urljoin(endpoint, api)
-    # TODO: check if we need API key in data
-    try:
-        r = requests.get(
-            url,
-            params=data,
-            headers=HEADERS)
-
-    except requests.exceptions.RequestException as e:
-        error = "Failed to process URL: {} with params {}".format(
-                url, data)
-        return False, error + " Error: " + str(e), 0
-    else:
-        # requests.codes.ok == 200 or
-        # check for 400 code - as this is a valid response
-        # as per the workflow
-        if r.status_code in [requests.codes.ok, 400]:
-            return True, json.loads(r.text), r.status_code
-        else:
-            msg = "Returned {} status code for {}. {}".format(
-                r.status_code, url, r.json().get(
-                    "summary", "no summary returned from server."))
-            return False, msg, r.status_code
-
-
-class AnalyticsIntegration(object):
-    """
-    Analytics integrtion related tasks wrapped in this calls
-    """
-
-    def __init__(self, container, scan_type):
+    def __init__(self, scan_type):
         """
         Initialize object variables specific to per container scanning
         """
-        self.scanner = "scanner-analytics-integration"
-        self.container = container
+        super(AnalyticsIntegration, self).__init__()
+        self.result_file = "analytics_scanner_results.json"
         # scan_type = [register, scan, get_report]
         self.scan_type = scan_type
         self.api = self.api_name()
@@ -171,9 +45,103 @@ class AnalyticsIntegration(object):
         # the needed data to be logged in scanner output
         self.data = {}
         # the templated data this scanner will export
-        self.json_out = self.template_json_data(self.scanner,
-                                                self.scan_type,
-                                                container[1:])
+        self.json_out = self.template_json_data()
+
+    def configure_logging(self, name="integration-scanner"):
+        """
+        Configures logging and returns logger object
+        """
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler(sys.stdout)
+        ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            "%(asctime)s %(levelname)s p%(process)s %(name)s %(lineno)d "
+            "%(levelname)s - %(message)s"
+        )
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+        return logger
+
+    def get_env_var(self, env_name):
+        """
+        Gets the configured given env_name or None
+        """
+        if not os.environ.get(env_name, False):
+            raise ValueError(
+                "No value for {0} env var. Please re-run with: "
+                "{0}=<VALUE> [..] atomic scan [..] ".format(env_name)
+            )
+        return os.environ.get(env_name)
+
+    def post_request(self, endpoint, api, data):
+        """
+        Make a post call to analytics server with given data
+
+        :param endpoint: API server end point
+        :param api: API to make POST call against
+        :param data: JSON data needed for POST call to api endpoint
+
+        :return: Tuple (status, error_if_any, status_code)
+                 where status = True/False
+                       error_if_any = string message on error, "" on success
+                       status_code = status_code returned by server
+        """
+        url = urljoin(endpoint, api)
+        # TODO: check if we need API key in data
+        try:
+            r = requests.post(
+                url,
+                json.dumps(data),
+                headers=self.HEADERS)
+        except requests.exceptions.RequestException as e:
+            error = ("Could not send POST request to URL {0}, "
+                     "with data: {1}.").format(url, str(data))
+            return False, error + " Error: " + str(e), 0
+        else:
+            # requests.codes.ok == 200
+            if r.status_code == requests.codes.ok:
+                return True, json.loads(r.text), r.status_code
+            else:
+                return False, "Returned {} status code for {}".format(
+                    r.status_code, url), r.status_code
+
+    def get_request(self, endpoint, api, data):
+        """
+        Make a get call to analytics server
+
+        :param endpoint: API server end point
+        :param api: API to make GET call against
+        :param data: JSON data needed for GET call
+
+        :return: Tuple (status, error_if_any, status_code)
+                 where status = True/False
+                       error_if_any = string message on error, "" on success
+                       status_code = status_code returned by server
+        """
+        url = urljoin(endpoint, api)
+        # TODO: check if we need API key in data
+        try:
+            r = requests.get(
+                url,
+                params=data,
+                headers=self.HEADERS)
+
+        except requests.exceptions.RequestException as e:
+            error = "Failed to process URL: {} with params {}".format(
+                    url, data)
+            return False, error + " Error: " + str(e), 0
+        else:
+            # requests.codes.ok == 200 or
+            # check for 400 code - as this is a valid response
+            # as per the workflow
+            if r.status_code in [requests.codes.ok, 400]:
+                return True, json.loads(r.text), r.status_code
+            else:
+                msg = "Returned {} status code for {}. {}".format(
+                    r.status_code, url, r.json().get(
+                        "summary", "no summary returned from server."))
+                return False, msg, r.status_code
 
     def api_name(self):
         """
@@ -187,7 +155,7 @@ class AnalyticsIntegration(object):
         elif self.scan_type == "report":
             return "/api/v1/report"
 
-    def template_json_data(self, scanner, scan_type, uuid):
+    def template_json_data(self):
         """
         Populate and return a template standard json data out for scanner.
         """
@@ -195,10 +163,10 @@ class AnalyticsIntegration(object):
         json_out = {
             "Start Time": current_time,
             "Successful": False,
-            "Scan Type": scan_type,
-            "UUID": uuid,
+            "Scan Type": self.scan_type,
+            "UUID": "",
             "CVE Feed Last Updated": "NA",
-            "Scanner": scanner,
+            "Scanner": self.NAME,
             "Scan Results": {},
             "Summary": ""
         }
@@ -215,10 +183,10 @@ class AnalyticsIntegration(object):
         Run the needed tasks for scanning container under test
         """
         try:
-            self.image_name = get_env_var("IMAGE_NAME")
-            self.server = get_env_var("SERVER")
-            self.git_url = get_env_var("GITURL")
-            self.git_sha = get_env_var("GITSHA")
+            self.image_name = self.get_env_var("IMAGE_NAME")
+            self.server = self.get_env_var("SERVER")
+            self.git_url = self.get_env_var("GITURL")
+            self.git_sha = self.get_env_var("GITSHA")
         except ValueError as e:
             self.record_fatal_error(e)
             self.failure = True
@@ -237,47 +205,40 @@ class AnalyticsIntegration(object):
 
         # post request
         if self.scan_type == "register":
-            return self.handle_register()
+            # Handles /register POST API call
+            request_data = {"git-url": self.data["git-url"],
+                            "git-sha": self.data["git-sha"]}
+
+            status, resp, s_code = self.post_request(
+                endpoint=self.server,
+                api=self.api,
+                data=request_data)
+            if not status:
+                self.failure = True
+                self.record_fatal_error(resp)
+                return self.return_on_failure(s_code)
+
+            # if there are no return on data failures, return True
+            return self.return_on_success(resp, status_code=s_code)
 
         # get request
         elif self.scan_type == "report":
-            return self.handle_report()
 
-    def handle_register(self):
-        """
-        Handles /register POST API call
-        """
-        request_data = {"git-url": self.data["git-url"],
-                        "git-sha": self.data["git-sha"]}
+            # Handles /report GET API call
+            request_data = {"git-url": self.data["git-url"],
+                            "git-sha": self.data["git-sha"]}
 
-        status, resp, s_code = post_request(endpoint=self.server,
-                                            api=self.api,
-                                            data=request_data)
-        if not status:
-            self.failure = True
-            self.record_fatal_error(resp)
-            return self.return_on_failure(s_code)
+            status, resp, s_code = self.get_request(
+                endpoint=self.server,
+                api=self.api,
+                data=request_data)
+            if not status:
+                self.failure = True
+                self.record_fatal_error(resp)
+                return self.return_on_failure(s_code)
 
-        # if there are no return on data failures, return True
-        return self.return_on_success(resp, status_code=s_code)
-
-    def handle_report(self):
-        """
-        Handles /report GET API call
-        """
-        request_data = {"git-url": self.data["git-url"],
-                        "git-sha": self.data["git-sha"]}
-
-        status, resp, s_code = get_request(endpoint=self.server,
-                                           api=self.api,
-                                           data=request_data)
-        if not status:
-            self.failure = True
-            self.record_fatal_error(resp)
-            return self.return_on_failure(s_code)
-
-        # if there are no return on data failures, return True
-        return self.return_on_success(resp, status_code=s_code)
+            # if there are no return on data failures, return True
+            return self.return_on_success(resp, status_code=s_code)
 
     def return_on_failure(self, status_code=None):
         """
@@ -314,56 +275,25 @@ class AnalyticsIntegration(object):
         self.json_out["api_status_code"] = status_code
         return True, self.json_out
 
-
-class Scanner(object):
-    """
-    Wrapper class for running the scan over images and/or containers
-    """
-
-    def __init__(self, scan_type):
-        self.scan_type = scan_type
-        self.scanner = "scanner-analytics-integration"
-        self.result_file = "analytics_scanner_results.json"
-
-    def target_containers(self):
-        """
-        Returns the containers / images to be processed
-        """
-        # atomic scan will mount container's image onto
-        # a rootfs and expose rootfs to scanner under the /scanin directory
-        return [_dir for _dir in os.listdir(INDIR) if
-                os.path.isdir(os.path.join(INDIR, _dir))
-                ]
-
-    def run(self):
-        for container in self.target_containers():
-            per_scan_object = AnalyticsIntegration(container, self.scan_type)
-            status, output = per_scan_object.run()
-            print ("Scanner execution status: {}".format(status))
-            print ("api_status_code: {}".format(
-                output.get("api_status_code",
-                           "Unable to retrieve status code!")))
-
-            # Write scan results to json file
-            out_path = os.path.join(OUTDIR, container)
-            self.export_results(out_path, output, container)
-
-    def export_results(self, out_path, output, container):
+    def export_results(self, data, export_dir, export_filename):
         """
         Export the JSON data in output_file
         """
-        out_path = os.path.join(OUTDIR, container)
-        os.makedirs(out_path)
+        os.makedirs(export_dir)
 
-        # result file name = "scanner-analytics-integration.json"
-        result_filename = os.path.join(out_path, self.result_file)
+        result_filename = os.path.join(export_dir, export_filename)
 
         with open(result_filename, "w") as f:
-            json.dump(output, f, indent=4, separators=(",", ": "))
+            json.dump(data, f, indent=4, separators=(",", ": "))
 
 
 if __name__ == "__main__":
-    configure_logging()
+    # configure_logging()
     command = sys.argv[1]
-    scanner = Scanner(scan_type=command)
-    scanner.run()
+    scanner = AnalyticsIntegration(scan_type=command)
+    status, output = scanner.run()
+    print ("Scanner execution status: {}".format(status))
+    print ("api_status_code: {}".format(output.get(
+        "api_status_code",
+        "Unable to retrieve status code!")))
+    scanner.export_results(output, ".", scanner.result_file)
