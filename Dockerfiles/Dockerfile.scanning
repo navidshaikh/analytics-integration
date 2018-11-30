@@ -4,6 +4,8 @@ FROM registry.access.redhat.com/rhel7:latest
 # RUN yum -y update && yum clean all
 
 RUN mkdir -p /opt/scanning
-ADD scanning workers /opt/scanning
+ADD . /opt/scanning
 ENV PYTHONPATH=$PYTHONPATH:/opt/scanning
 WORKDIR /opt/scanning
+VOLUME ["/opt/scanning"]
+CMD ["sh", "-c", "tail -f /dev/null"]
