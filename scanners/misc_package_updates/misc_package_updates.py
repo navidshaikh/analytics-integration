@@ -23,7 +23,11 @@ class MiscPackageUpdates(BaseScanner):
         Finds out outdated installed packages of pip
         """
         # figure out the absolute path of binary in target system
-        binary = self.which(binary)
+        try:
+            binary = self.which(binary)
+        except BinaryDoesNotExist as e:
+            return str(e)
+
         command = [binary, "list", "--outdated", "--disable-pip-version-check"]
         out, err = [], ""
 
@@ -45,7 +49,11 @@ class MiscPackageUpdates(BaseScanner):
         Finds out outdated installed packages of npm
         """
         # figure out the absolute path of binary in target system
-        binary = self.which(binary)
+        try:
+            binary = self.which(binary)
+        except BinaryDoesNotExist as e:
+            return str(e)
+
         command = [binary, "-g", "outdated"]
         out, err = [], ""
 
@@ -67,7 +75,11 @@ class MiscPackageUpdates(BaseScanner):
         Finds out outdated installed packages of gem
         """
         # figure out the absolute path of binary in target system
-        binary = self.which(binary)
+        try:
+            binary = self.which(binary)
+        except BinaryDoesNotExist as e:
+            return str(e)
+
         command = [binary, "outdated"]
         out, err = [], ""
 
@@ -136,10 +148,6 @@ class MiscPackageUpdates(BaseScanner):
                 self.print_updates("gem")
             else:
                 self.print_updates(cli_arg)
-        except BinaryDoesNotExist as e:
-            print (e)
-            print ("Scan is aborted!")
-            sys.exit(1)
         except Exception as e:
             print ("Error occurred in Misc Package Updates scanner execution.")
             print ("Error: {0}".format(e))
