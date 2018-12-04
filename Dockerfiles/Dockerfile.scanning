@@ -1,10 +1,17 @@
 FROM registry.access.redhat.com/rhel7:latest
 
-# RUN yum-config-manager -q -y --enable rhel-7-server-extras-rpms
-# RUN yum -y update && yum clean all
+LABEL RUN='docker run --rm --name scanning $IMAGE'
+
+# fix for employee subscription
+RUN yum -y install deltarpm yum-utils --disablerepo=*-eus-* --disablerepo=*-htb-* \
+    --disablerepo=*-ha-* --disablerepo=*-rt-* --disablerepo=*-lb-* --disablerepo=*-rs-* --disablerepo=*-sap-*
+RUN yum-config-manager --disable *-eus-* *-htb-* *-ha-* *-rt-* *-lb-* *-rs-* *-sap-* > /dev/null
+
+RUN yum -y update && \
+    yum clean all
 
 RUN mkdir -p /opt/scanning
-ADD . /opt/scanning
+ADD . /opt/scanning/
 ENV PYTHONPATH=$PYTHONPATH:/opt/scanning
 WORKDIR /opt/scanning
 VOLUME ["/opt/scanning"]
