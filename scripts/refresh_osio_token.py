@@ -6,16 +6,15 @@ token sourced in the referenced file. After generating
 access token, its exported at referenced file.
 
 This referenced file for exporting the access token,
-should go inside analytics-integration scanner. Thus
-analytics-integration scanner is also rebuilt.
+should go inside scanning container for analytics-integration
+scanner usage and proper functioning.
 """
 
 
 import sys
 
 from scanning.lib.command import run_cmd
-from config import REFRESH_TOKEN_FILE, ACCESS_TOKEN_FILE, \
-    ANALYTICS_SCANNER_CONTEXT
+from config import REFRESH_TOKEN_FILE, ACCESS_TOKEN_FILE
 
 
 def refresh_token():
@@ -42,19 +41,17 @@ https://auth.openshift.io/api/token/refresh """
     return access_token
 
 
-def rebuilt_analytics_scanner(access_token):
+def rebuild_scanning_container(access_token):
     """
-    Rebuilt the analytics-scanner
+    Rebuilt the scanning container with new OSIO access token
     """
     with open(ACCESS_TOKEN_FILE, "w") as fin:
         fin.write(access_token)
 
     command = """\
-cd {CONTEXT} && \
-sudo docker build -t scanner-analytics-integration:rhel7 -f \
-Dockerfile.rhel7 . && \
-cd - """
-    command = command.format(CONTEXT=ANALYTICS_SCANNER_CONTEXT)
+sudo docker build -t scanning:latest -f \
+Dockerfiles/Dockerfile.scanning ."""
+
     return run_cmd(command, shell=True)
 
 
@@ -64,6 +61,6 @@ if __name__ == "__main__":
     access_token = refresh_token()
     # rebuilt the client analytics-integration-scanner with
     # access token so that it can talk to analytics/gemini api server
-    print ("Rebuilding analytics-integration-scanner with new access token..")
-    response = rebuilt_analytics_scanner(access_token)
+    print ("Rebuilding scanning container with new OSIO access token..")
+    response = rebuild_scanning_container(access_token)
     print (response)
