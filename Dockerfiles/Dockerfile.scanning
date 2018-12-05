@@ -8,11 +8,13 @@ RUN yum -y install deltarpm yum-utils --disablerepo=*-eus-* --disablerepo=*-htb-
 RUN yum-config-manager --disable *-eus-* *-htb-* *-ha-* *-rt-* *-lb-* *-rs-* *-sap-* > /dev/null
 
 RUN yum -y update && \
+    yum -y install python-requests && \
     yum clean all
 
 RUN mkdir -p /opt/scanning
 ADD . /opt/scanning/
-ENV PYTHONPATH=$PYTHONPATH:/opt/scanning
 WORKDIR /opt/scanning
+
+ENV PYTHONPATH=$PYTHONPATH:/opt/scanning
 VOLUME ["/opt/scanning"]
 CMD ["sh", "-c", "tail -f /dev/null"]
