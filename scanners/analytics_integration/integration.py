@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 
+from config import ACCESS_TOKEN_FILE
 from scanners.base_scanner import BaseScanner
 
 import sys
@@ -15,7 +16,7 @@ class AnalyticsIntegration(BaseScanner):
     NAME = "analytics-integration-scanner"
     DESCRIPTION = ("Analytics integration scanner fetching"
                    " report from Analytics server.")
-    TOKEN = open("osio_token.txt").read().strip()
+    TOKEN = open(ACCESS_TOKEN_FILE).read().strip()
 
     HEADERS = {
         "content-type": "application/json",
