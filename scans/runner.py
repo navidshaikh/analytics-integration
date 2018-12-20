@@ -10,15 +10,14 @@ import logging
 import os
 import sys
 
-import docker
-from scanning.lib import settings
-from scanning.lib.log import load_logger
-from scanning.scanners.analytics_integration import AnalyticsIntegration
-from scanning.scanners.base import Scanner
-from scanning.scanners.container_capabilities import ContainerCapabilities
-from scanning.scanners.misc_package_updates import MiscPackageUpdates
-from scanning.scanners.pipeline_scanner import PipelineScanner
-from scanning.scanners.rpm_verify import ScannerRPMVerify
+from lib import settings
+from lib.log import load_logger
+from scanners.analytics_integration import AnalyticsIntegration
+from scanners.base import Scanner
+from scanners.container_capabilities import ContainerCapabilities
+from scanners.misc_package_updates import MiscPackageUpdates
+from scanners.pipeline_scanner import PipelineScanner
+from scanners.rpm_verify import ScannerRPMVerify
 
 
 class ScannerRunner(Scanner):
@@ -26,7 +25,7 @@ class ScannerRunner(Scanner):
     Scanner Handler orchestration.
 
     Scanner runner class handling basic operation and orchestration of
-    multiple scanner handlers
+    multiple scanners.
     """
 
     def __init__(self, job):
@@ -85,38 +84,6 @@ class ScannerRunner(Scanner):
 
         self.logger.info("Pulled image {}".format(image))
         return True
-
-    def export_scanners_status(self, status, status_file_path):
-        """
-        Export status of scanners execution for build in process.
-        """
-        try:
-            fin = open(status_file_path, "w")
-            json.dump(status, fin, indent=4, sort_keys=True)
-        except IOError as e:
-            self.logger.critical(
-                "Failed to write scanners status on NFS share.")
-            self.logger.critical(str(e))
-        else:
-            self.logger.info(
-                "Wrote scanners status to file: {}".format(status_file_path))
-
-    def export_scanner_result(self, data, result_file):
-        """
-        Export scanner logs in given directory.
-        """
-        try:
-            fin = open(result_file, "w")
-            json.dump(data, fin, indent=4, sort_keys=True)
-        except IOError as e:
-            self.logger.critical(
-                "Failed to write scanner result file {}".format(result_file))
-            self.logger.critical(str(e), exc_info=True)
-            return None
-        else:
-            self.logger.info(
-                "Exported scanner result file {}".format(result_file))
-            return True
 
     def run_a_scanner(self, obj, image,
                       server=None, giturl=None, gitsha=None,
@@ -194,7 +161,7 @@ class ScannerRunner(Scanner):
                 self.job["logs_dir"], scanner_obj.result_file)
 
             # for only the cases where export/write operation could fail
-            if not self.export_scanner_result(result, result_file):
+            if not self.export_json_results(result, result_file):
                 continue
 
             # keep the message
@@ -275,7 +242,7 @@ class ScannerRunner(Scanner):
             self.job["logs_dir"], scanner_obj.result_file)
 
         # for only the cases where export/write operation could fail
-        if not self.export_scanner_result(result, result_file):
+        if not self.export_json_results(result, result_file):
             return {}
 
         # keep the message
@@ -358,7 +325,7 @@ class ScannerRunner(Scanner):
             settings.SCANNERS_STATUS_FILE)
 
         # We export the scanners_status on NFS
-        self.export_scanners_status(scanners_data, status_file_path)
+        self.export_json_results(scanners_data, status_file_path)
 
         # clean up the system post scan
         self.clean_up(image)

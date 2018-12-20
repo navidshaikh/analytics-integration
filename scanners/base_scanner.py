@@ -230,10 +230,20 @@ class BaseScanner(object):
         """
         os.makedirs(output_dir)
 
-        result_filename = os.path.join(output_dir, output_file)
+        output_filename = os.path.join(output_dir, output_file)
 
-        with open(result_filename, "w") as f:
-            json.dump(results, f, indent=4, separators=(",", ": "))
+        try:
+            fin = open(output_filename, "w")
+            json.dump(data, fin, indent=4, sort_keys=True)
+        except IOError as e:
+            self.logger.critical(
+                "Failed to export JSON results at {}".format(output_filename))
+            self.logger.critical(str(e), exc_info=True)
+            return None
+        else:
+            self.logger.info(
+                "Exported JSON results at {}".format(output_filename))
+            return True
 
     def template_json_data(self, scanner, scan_type='', uuid=''):
         """
