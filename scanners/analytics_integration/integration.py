@@ -172,7 +172,9 @@ class AnalyticsIntegration(BaseScanner):
 
         # TODO: Configure export dir to export results
         # Write scan results to json file
-        # self.export_json_results(self.json_out, output_dir, self.result_file)
+        output_dir = self.get_env_var(self.RESULT_DIR_ENV_VAR)
+        self.export_json_results(self.json_out, output_dir, self.result_file)
+        print ("Exported the scanner results.")
 
 
 if __name__ == "__main__":
