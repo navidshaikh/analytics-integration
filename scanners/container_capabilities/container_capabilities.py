@@ -21,6 +21,7 @@ class ContainerCapabilitiesScanner(BaseScanner):
 
     def __init__(self):
         super(ContainerCapabilitiesScanner, self).__init__()
+        self.result_file = "container_capabilities_scanner_results.json"
 
     def check_args(self, cmd):
         """
@@ -86,7 +87,10 @@ class ContainerCapabilitiesScanner(BaseScanner):
         if print_results:
             print(msg)
         else:
-            return msg
+            output_dir = self.get_env_var(self.RESULT_DIR_ENV_VAR)
+            self.export_json_results(
+                {"msg": msg}, output_dir, self.result_file)
+            print ("Exported the scanner results.")
 
 
 if __name__ == "__main__":
