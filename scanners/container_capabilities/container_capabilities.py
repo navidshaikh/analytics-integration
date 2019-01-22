@@ -55,28 +55,38 @@ class ContainerCapabilitiesScanner(BaseScanner):
                 'as well as disables SELinux within the container.'
         }
 
+        msg = ""
         for sec_arg in security_args:
             if sec_arg in cmd:
                 if not found_sec_arg:
-                    print("\nThis container uses privileged "
-                          "security switches:")
-                print("\nINFO: {0}\n\t{1}".format(
-                    sec_arg, security_args[sec_arg]))
+                    msg = msg + ("\nThis container uses privileged "
+                                 "security switches:")
+                msg = msg + ("\nINFO: {0}\n\t{1}".format(
+                             sec_arg, security_args[sec_arg]))
                 found_sec_arg = True
         if found_sec_arg:
-            print("\nFor more information on these switches and their "
-                  "security implications, consult the manpage for "
-                  "'docker run'.\n")
+            msg = msg + ("\nFor more information on these switches and their "
+                         "security implications, consult the manpage for "
+                         "'docker run'.\n")
+        else:
+            msg = "This container does not use privileged security switches."
 
-    def run(self, command):
+        return msg
+
+    def run(self, command, print_results=False):
         """
         Runs the container capabilities scan and prints error message
         if provided command is empty
         """
         if not command or command == "null":
-            print ("\n RUN label is not available in image under test.")
+            msg = ("\n RUN label is not available in image under test.")
         else:
-            self.check_args(command)
+            msg = self.check_args(command)
+
+        if print_results:
+            print(msg)
+        else:
+            return msg
 
 
 if __name__ == "__main__":

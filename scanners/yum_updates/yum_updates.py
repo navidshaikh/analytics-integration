@@ -64,6 +64,7 @@ class YumUpdates(BaseScanner):
         """
         super(YumUpdates, self).__init__()
         self.yum_obj = yum.YumBase()
+        self.result_file = "pipeline_scanner_results.json"
 
     def find_updates(self):
         """
@@ -105,8 +106,19 @@ class YumUpdates(BaseScanner):
             )
         return updates
 
-    def run(self):
-        return self.print_updates(self.find_updates())
+    def run(self, print_result=False):
+        """
+        Run the scanner
+        """
+        results = self.find_updates()
+
+        if print_result:
+            return self.print_updates(results)
+
+        # if not asked to print the results, export it
+        output_dir = self.get_env_var(self.RESULT_DIR_ENV_VAR)
+        self.export_json_results(results, output_dir, self.result_file)
+        print ("Exported the scanner results.")
 
     def print_updates(self, updates):
         """
