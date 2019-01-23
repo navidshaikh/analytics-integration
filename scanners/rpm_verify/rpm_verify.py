@@ -63,6 +63,7 @@ class RPMVerify(BaseScanner):
         super(RPMVerify, self).__init__()
         # figure out the absolute path of binary in target system
         self.rpm_binary = self.which("rpm")
+        self.result_file = "rpm_verify_scanner_results.json"
 
     def get_rpm_verify_command(self):
         """
@@ -160,7 +161,7 @@ class RPMVerify(BaseScanner):
                 "rpm": self.get_meta_of_rpm(rpm)})
         return result
 
-    def run(self):
+    def run(self, print_result=False):
         """
         Run the RPM verify test
         """
@@ -173,7 +174,12 @@ class RPMVerify(BaseScanner):
         result['alert'] = True
         result['end_time'] = self.time_now()
         result['os'] = self.linux_distribution()
-        return result
+        if print_result:
+            print_result(result)
+        else:
+            output_dir = self.get_env_var(self.RESULT_DIR_ENV_VAR)
+            self.export_json_results(result, output_dir, self.result_file)
+            print ("Exported the scanner results.")
 
     def print_result(self, result):
         """
@@ -210,8 +216,7 @@ class RPMVerify(BaseScanner):
 if __name__ == "__main__":
     try:
         rpmverify = RPMVerify()
-        result = rpmverify.run()
-        rpmverify.print_result(result)
+        result = rpmverify.run(print_result=False)
     except BinaryDoesNotExist as e:
         print (e)
         print ("Scan is aborted!")
