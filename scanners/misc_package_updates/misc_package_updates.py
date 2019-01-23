@@ -17,6 +17,7 @@ class MiscPackageUpdates(BaseScanner):
 
     def __init__(self):
         super(MiscPackageUpdates, self).__init__()
+        self.result_file = "misc_package_updates_scanner_results.json"
 
     def find_pip_updates(self, binary="pip"):
         """
@@ -96,11 +97,31 @@ class MiscPackageUpdates(BaseScanner):
             else:
                 return []
 
-    def print_updates(self, binary):
+    def print_updates(self, binary, updates):
         """
-        Prints the updates found using given binary
+        Prints the updates found for given binary
         """
         print ("\n{0} updates scan:".format(binary))
+
+        if updates["logs"]:
+            # print errors
+            if isinstance(updates["logs"], str):
+                print (updates["logs"])
+                return
+            # print the updates line by line
+            for line in updates["logs"]:
+                print (line)
+        else:
+            print ("No updates required.")
+
+    def find_updates(self, binary):
+        """
+        Finds available updates for given binary
+        """
+        # initialize the results file with proper scanner name
+        updates = {
+            "scanner": "{} updates".format(binary)
+        }
 
         if binary == "npm":
             result = self.find_npm_updates()
@@ -112,17 +133,17 @@ class MiscPackageUpdates(BaseScanner):
             return
 
         if result:
-            # prints errors
-            if isinstance(result, str):
-                print (result)
-                return
-            # prints result
-            for line in result:
-                print (line)
+            # whether error or updates result
+            updates["logs"] = result
         else:
-            print ("No updates required.")
+            # if the binary is present and no output
+            # it means, no updates are required
+            updates["logs"] = (
+                "No updates required for {} dependencies.".format(binary))
 
-    def run(self):
+        return updates
+
+    def run(self, print_result=False):
         """
         Run the scanner
         """
@@ -141,19 +162,52 @@ class MiscPackageUpdates(BaseScanner):
             print ("Please provide valid args among {0}".format(valid_args))
             sys.exit(1)
 
+        # initialie the results dict
+        results = {"logs": []}
         try:
             if cli_arg == "all":
-                self.print_updates("pip")
-                self.print_updates("npm")
-                self.print_updates("gem")
+                # append all the updates of each binary or print
+
+                # for pip updates scanner
+                updates = self.find_updates("pip")
+                if not print_result:
+                    results["logs"].append(updates)
+                else:
+                    self.print_updates("pip", updates)
+
+                # for npm updates scanner
+                updates = self.find_updates("npm")
+                if not print_result:
+                    results["logs"].append(updates)
+                else:
+                    self.print_updates("npm", updates)
+
+                # for gem updates scanner
+                updates = self.find_updates("gem")
+                if not print_result:
+                    results["logs"].append(updates)
+                else:
+                    self.print_updates("gem", updates)
             else:
-                self.print_updates(cli_arg)
+                # for individual binary updates
+                updates = self.find_updates(cli_arg)
+                if not print_result:
+                    results["logs"].append(updates)
+                else:
+                    self.print_updates(cli_arg, updates)
+
         except Exception as e:
-            print ("Error occurred in Misc Package Updates scanner execution.")
+            print ("Error occurred in scanner execution.")
             print ("Error: {0}".format(e))
             sys.exit(1)
+        else:
+            # export the results
+            if not print_result:
+                output_dir = self.get_env_var(self.RESULT_DIR_ENV_VAR)
+                self.export_json_results(results, output_dir, self.result_file)
+                print ("Exported the scanner results.")
 
 
 if __name__ == "__main__":
     misc_pkg_updates = MiscPackageUpdates()
-    misc_pkg_updates.run()
+    misc_pkg_updates.run(print_result=False)
