@@ -13,14 +13,11 @@ ALERTS = ["ok", "problem"]
 GITREPO = ""
 GITBRANCH = "master"
 
-#===================OSIO access token config================
+# ===================OSIO access token config================
 # place where refresh token needs to be sourced
 REFRESH_TOKEN_FILE = "/opt/scanning/refresh_token.txt"
 
 # place where the access token will be exported via this
 # script
-ACCESS_TOKEN_FILE = ("/opt/scanning/atomic_scanners/"
-                     "scanner-analytics-integration/osio_token.txt")
-
-ANALYTICS_SCANNER_CONTEXT = \
-    "/opt/scanning/atomic_scanners/scanner-analytics-integration/"
+ACCESS_TOKEN_FILE = ("/opt/scanning/scanners/"
+                     "analytics_integration/osio_token.txt")
